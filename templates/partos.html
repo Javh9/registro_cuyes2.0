@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Partos</h2>
+
+<form method="post" class="row g-2 mb-3">
+  <div class="col-md-3">
+    <select name="galpon_id" class="form-select" required>
+      <option value="">Galpón...</option>
+      {% for g in galpones %}<option value="{{ g.id }}">{{ g.nombre }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><input name="poza_id" placeholder="Poza id" class="form-control"></div>
+  <div class="col-md-2"><input type="date" name="fecha" class="form-control"></div>
+  <div class="col-md-1"><input name="nacidos_hembras" type="number" min="0" class="form-control" placeholder="H"></div>
+  <div class="col-md-1"><input name="nacidos_machos" type="number" min="0" class="form-control" placeholder="M"></div>
+  <div class="col-md-2"><button class="btn btn-primary w-100">Registrar parto</button></div>
+</form>
+
+<table class="table table-sm">
+  <thead><tr><th>Fecha</th><th>Galpón</th><th>Poza</th><th>Nacidos H</th><th>Nacidos M</th></tr></thead>
+  <tbody>
+    {% for p in partos %}
+    <tr>
+      <td>{{ p.fecha }}</td>
+      <td>{{ p.galpon_nombre }}</td>
+      <td>{{ p.poza_nombre }}</td>
+      <td>{{ p.nacidos_hembras }}</td>
+      <td>{{ p.nacidos_machos }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">No hay partos</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
