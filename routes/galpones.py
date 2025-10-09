@@ -1,34 +1,53 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from db.connection import get_db_connection, get_db_dict_cursor
+from flask import Blueprint, request, jsonify, render_template
+from models.galpones import Galpon  # ✅ Solo este import
 
-bp = Blueprint('galpones', __name__, url_prefix='/galpones')
+bp = Blueprint('galpones', __name__)
 
-@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/')
 def listar_galpones():
-    if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        descripcion = request.form.get('descripcion', '')
-        try:
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute("INSERT INTO galpones (nombre, descripcion) VALUES (%s,%s) RETURNING id", (nombre, descripcion))
-            conn.commit()
-            cur.close()
-            conn.close()
-            flash('Galpón creado', 'success')
-            return redirect(url_for('galpones.listar_galpones'))
-        except Exception as e:
-            flash(f'Error: {e}', 'danger')
-
     try:
-        conn = get_db_connection()
-        cur = get_db_dict_cursor(conn)
-        cur.execute("SELECT * FROM galpones ORDER BY nombre")
-        galpones = cur.fetchall()
-        cur.close()
-        conn.close()
+        galpon_model = Galpon()
+        galpones = galpon_model.obtener_todos()
+        return render_template('galpones.html', galpones=galpones)
     except Exception as e:
-        galpones = []
-        flash(f'Error leyendo galpones: {e}', 'danger')
+        return f"Error: {str(e)}", 500
 
-    return render_template('galpones.html', galpones=galpones)
+@bp.route('/crear', methods=['POST'])
+def crear_galpon():
+    try:
+        data = request.form
+        galpon_model = Galpon()
+        galpon_id = galpon_model.crear(data)
+        return jsonify({'success': True, 'id': galpon_id})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/<int:id>', methods=['GET'])
+def obtener_galpon(id):
+    try:
+        galpon_model = Galpon()
+        galpon = galpon_model.obtener_por_id(id)
+        if galpon:
+            return jsonify(galpon)
+        return jsonify({'error': 'Galpón no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/<int:id>/actualizar', methods=['PUT'])
+def actualizar_galpon(id):
+    try:
+        data = request.json
+        galpon_model = Galpon()
+        galpon_model.actualizar(id, data)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/<int:id>/eliminar', methods=['DELETE'])
+def eliminar_galpon(id):
+    try:
+        galpon_model = Galpon()
+        galpon_model.eliminar(id)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

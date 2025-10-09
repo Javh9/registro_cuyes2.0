@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h3>Nuevo Galpón</h3>
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label">Nombre</label>
+      <input class="form-control" name="nombre" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-control" name="descripcion"></textarea>
+    </div>
+    <button class="btn btn-primary">Crear</button>
+    <a href="{{ url_for('galpones.list_galpones') }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}
