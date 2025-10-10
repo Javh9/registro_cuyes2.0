@@ -1,32 +1,60 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from db.connection import get_db_connection
+from datetime import datetime  # ✅ AGREGAR ESTA IMPORTACIÓN
+import os
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
-    
-    # Registrar blueprints
-    from routes.galpon import bp as galpon_bp
-    from routes.poza import bp as poza_bp
-    from routes.animal import bp as animal_bp
-    from routes.parto import bp as parto_bp
-    
-    app.register_blueprint(galpon_bp, url_prefix='/galpones')
-    app.register_blueprint(poza_bp, url_prefix='/pozas')
-    app.register_blueprint(animal_bp, url_prefix='/animales')
-    app.register_blueprint(parto_bp, url_prefix='/partos')
-    
-    @app.route('/')
-    def index():
-        return render_template('index.html')
-    
-    # ✅ CORREGIDO: Dashboard antes del return
-    @app.route('/dashboard')
-    def dashboard():
-        return render_template('dashboard.html')
-    
-    return app
+# Inicializar la aplicación Flask
+app = Flask(__name__)
+app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por una clave segura
 
-app = create_app()
+# Configuración de la base de datos
+app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'db', 'cuyes.db')
+
+# Ahora sí puedes usar @app.route
+@app.route('/')
+def index():
+    fecha_actual = datetime.now().strftime("%d/%m/%Y")
+    return render_template('dashboard.html', fecha_actual=fecha_actual)
+
+@app.route('/partos')
+def partos():
+    # Obtener galpones para el dropdown
+    from models.galpon import Galpon
+    galpon_model = Galpon()
+    galpones = galpon_model.obtener_todos()
+    
+    return render_template('partos.html', galpones=galpones)
+
+@app.route('/destetes')
+def destetes():
+    return render_template('destetes.html')
+
+@app.route('/ventas')
+def ventas():
+    return render_template('ventas.html')
+
+@app.route('/galpones')
+def galpones():
+    from models.galpon import Galpon
+    galpon_model = Galpon()
+    galpones = galpon_model.obtener_todos()
+    return render_template('galpones.html', galpones=galpones)
+
+# API para cargar pozas según galpón
+@app.route('/api/galpones/<int:galpon_id>/pozas')
+def api_pozas_por_galpon(galpon_id):
+    from models.poza import Poza
+    poza_model = Poza()
+    pozas = poza_model.obtener_por_galpon(galpon_id)
+    
+    pozas_data = []
+    for poza in pozas:
+        pozas_data.append({
+            'id': poza[0],
+            'nombre': poza[1]
+        })
+    
+    return jsonify(pozas_data)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, port=5000)
