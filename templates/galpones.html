@@ -1,92 +1,178 @@
 {% extends "base.html" %}
 
-{% block title %}Galpones - Granja Inteligente{% endblock %}
+{% block title %}Gestión de Galpones y Pozas{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="h2 text-success">
-                <i class="bi bi-building"></i> Gestión de Galpones
-            </h1>
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">🏠 Gestión de Galpones y Pozas</h1>
+            <p class="text-gray-600">Administra galpones y sus pozas</p>
         </div>
-        <div class="col-auto">
-            <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
-                <i class="bi bi-plus-circle"></i> Nuevo Galpón
+        <div class="space-x-4">
+            <button onclick="abrirModalGalpon()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium">
+                <i class="fas fa-plus mr-2"></i>Nuevo Galpón
+            </button>
+            <button onclick="abrirModalPoza()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+                <i class="fas fa-vector-square mr-2"></i>Nueva Poza
             </button>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-modern">
-                <div class="card-body">
-                    {% if galpones %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Capacidad</th>
-                                    <th>Ubicación</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for galpon in galpones %}
-                                <tr>
-                                    <td><strong>#{{ galpon[0] }}</strong></td>
-                                    <td>{{ galpon[1] }}</td>
-                                    <td><span class="badge bg-primary">{{ galpon[2] }}</span></td>
-                                    <td>{{ galpon[3] or 'N/A' }}</td>
-                                    <td><span class="badge bg-success">{{ galpon[4] }}</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-building display-1 text-muted"></i>
-                        <h4 class="text-muted mt-3">No hay galpones registrados</h4>
-                        <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
-                            <i class="bi bi-plus-circle"></i> Agregar Primer Galpón
-                        </button>
-                    </div>
-                    {% endif %}
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ message }}
                 </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Tabla de Galpones -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">🏠 Galpones</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Capacidad</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Ubicación</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Pozas</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for galpon in galpones %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ galpon[0] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ galpon[1] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ galpon[2] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ galpon[3] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <button onclick="verPozas({{ galpon[0] }}, '{{ galpon[1] }}')" 
+                                    class="text-blue-600 hover:text-blue-900 font-medium">
+                                Ver Pozas
+                            </button>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                {{ galpon[4] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if not galpones %}
+    <div class="text-center py-12">
+        <i class="fas fa-building text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900">No hay galpones registrados</h3>
+        <p class="text-gray-500 mt-1">Comienza creando tu primer galpón</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Nuevo Galpón -->
+<div id="modalGalpon" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-4 border-b">
+                <h3 class="text-xl font-medium text-gray-900">Nuevo Galpón</h3>
+                <button onclick="cerrarModalGalpon()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            
+            <form class="mt-4 space-y-4" method="POST" action="{{ url_for('crear_galpon') }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                    <input type="text" name="nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Capacidad</label>
+                    <input type="number" name="capacidad" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" min="1" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+                    <input type="text" name="ubicacion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t">
+                    <button type="button" onclick="cerrarModalGalpon()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                        Guardar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="modalGalpon" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Nuevo Galpón</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal Nueva Poza -->
+<div id="modalPoza" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-4 border-b">
+                <h3 class="text-xl font-medium text-gray-900">Nueva Poza</h3>
+                <button onclick="cerrarModalPoza()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <form id="formGalpon">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="nombre" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Capacidad</label>
-                        <input type="number" class="form-control" name="capacidad" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" class="form-control" name="ubicacion">
-                    </div>
+            
+            <form class="mt-4 space-y-4" method="POST" action="{{ url_for('crear_poza') }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Galpón</label>
+                    <select name="galpon_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">Seleccionar galpón</option>
+                        {% for galpon in galpones %}
+                        <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar</button>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Poza</label>
+                    <input type="text" name="nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select name="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">Seleccionar tipo</option>
+                        <option value="reproductora">Reproductora</option>
+                        <option value="lactancia">Lactancia</option>
+                        <option value="destete">Destete</option>
+                        <option value="engorde">Engorde</option>
+                        <option value="reemplazo">Reemplazo</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Capacidad</label>
+                    <input type="number" name="capacidad" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" min="1" required>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t">
+                    <button type="button" onclick="cerrarModalPoza()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                        Guardar
+                    </button>
                 </div>
             </form>
         </div>
@@ -94,23 +180,39 @@
 </div>
 
 <script>
-document.getElementById('formGalpon').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch('/galpones/crear', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('modalGalpon')).hide();
-            location.reload();
-        } else {
-            alert('Error: ' + data.error);
-        }
-    });
+// Funciones para Galpones
+function abrirModalGalpon() {
+    document.getElementById('modalGalpon').classList.remove('hidden');
+}
+
+function cerrarModalGalpon() {
+    document.getElementById('modalGalpon').classList.add('hidden');
+}
+
+// Funciones para Pozas
+function abrirModalPoza() {
+    document.getElementById('modalPoza').classList.remove('hidden');
+}
+
+function cerrarModalPoza() {
+    document.getElementById('modalPoza').classList.add('hidden');
+}
+
+function verPozas(galponId, galponNombre) {
+    alert(`Pozas del galpón: ${galponNombre}\n\nEsta funcionalidad se implementará próximamente.`);
+}
+
+// Cerrar modales al hacer click fuera
+document.getElementById('modalGalpon').addEventListener('click', function(e) {
+    if (e.target.id === 'modalGalpon') {
+        cerrarModalGalpon();
+    }
+});
+
+document.getElementById('modalPoza').addEventListener('click', function(e) {
+    if (e.target.id === 'modalPoza') {
+        cerrarModalPoza();
+    }
 });
 </script>
 {% endblock %}

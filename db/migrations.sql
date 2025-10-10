@@ -1,55 +1,143 @@
--- Tabla animales
-CREATE TABLE IF NOT EXISTS animales (
+-- =============================================
+-- MIGRACIONES BÁSICAS - SISTEMA GRANJA CUYES
+-- =============================================
+
+-- Tabla galpones (PRIMERO - no depende de nadie)
+CREATE TABLE IF NOT EXISTS galpones (
     id SERIAL PRIMARY KEY,
-    codigo VARCHAR(50) UNIQUE NOT NULL,
-    sexo VARCHAR(10) NOT NULL CHECK (sexo IN ('macho', 'hembra')),
-    fecha_nacimiento DATE NOT NULL,
-    estado VARCHAR(20) DEFAULT 'activo' CHECK (estado IN ('activo', 'vendido', 'muerto', 'descarte')),
-    etapa_productiva VARCHAR(20) DEFAULT 'destete' CHECK (etapa_productiva IN ('reproductor', 'lactancia', 'destete', 'reemplazo', 'engorde')),
-    clasificacion VARCHAR(20),
-    poza_id INTEGER REFERENCES pozas(id),
-    madre_id INTEGER REFERENCES animales(id),
-    padre_id INTEGER REFERENCES animales(id),
-    peso_actual DECIMAL(8,2) DEFAULT 0,
-    fecha_creacion TIMESTAMP DEFAULT NOW(),
-    fecha_actualizacion TIMESTAMP DEFAULT NOW()
+    nombre VARCHAR(100) NOT NULL,
+    capacidad INTEGER NOT NULL,
+    ubicacion VARCHAR(100),
+    estado VARCHAR(20) DEFAULT 'activo',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla partos
-CREATE TABLE IF NOT EXISTS partos (
+-- Tabla pozas (SEGUNDO - depende de galpones)
+CREATE TABLE IF NOT EXISTS pozas (
     id SERIAL PRIMARY KEY,
-    hembra_id INTEGER REFERENCES animales(id),
+    nombre VARCHAR(100) NOT NULL,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('reproductora', 'lactancia', 'destete', 'engorde', 'reemplazo')),
+    capacidad INTEGER NOT NULL,
+    galpon_id INTEGER REFERENCES galpones(id),
+    estado VARCHAR(20) DEFAULT 'activo',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla partos_simplificada (TERCERO - depende de galpones y pozas)
+CREATE TABLE IF NOT EXISTS partos_simplificada (
+    id SERIAL PRIMARY KEY,
+    galpon_id INTEGER REFERENCES galpones(id),
     poza_id INTEGER REFERENCES pozas(id),
     fecha_parto DATE NOT NULL,
-    machos_nacidos INTEGER DEFAULT 0,
-    hembras_nacidas INTEGER DEFAULT 0,
+    nacidos_vivos INTEGER DEFAULT 0,
     muertos_nacimiento INTEGER DEFAULT 0,
+    numero_parto INTEGER NOT NULL,
     observaciones TEXT,
-    estado VARCHAR(20) DEFAULT 'lactancia' CHECK (estado IN ('lactancia', 'destetado', 'cerrado')),
     fecha_creacion TIMESTAMP DEFAULT NOW()
 );
 
--- Tabla destetes
-CREATE TABLE IF NOT EXISTS destetes (
+-- Tabla mortalidad_lactancia
+CREATE TABLE IF NOT EXISTS mortalidad_lactancia (
     id SERIAL PRIMARY KEY,
-    parto_id INTEGER REFERENCES partos(id),
+    galpon_id INTEGER REFERENCES galpones(id),
+    poza_id INTEGER REFERENCES pozas(id),
+    fecha DATE NOT NULL,
+    cantidad INTEGER DEFAULT 0,
+    causa VARCHAR(50) NOT NULL,
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla destetes_simplificada (SIN PESO)
+CREATE TABLE IF NOT EXISTS destetes_simplificada (
+    id SERIAL PRIMARY KEY,
+    galpon_id INTEGER REFERENCES galpones(id),
+    poza_origen_id INTEGER REFERENCES pozas(id),
     fecha_destete DATE NOT NULL,
     machos_destetados INTEGER DEFAULT 0,
     hembras_destetadas INTEGER DEFAULT 0,
     muertos_destete INTEGER DEFAULT 0,
-    peso_promedio DECIMAL(8,2),
-    destino VARCHAR(20) CHECK (destino IN ('reemplazo', 'engorde', 'venta_directa')),
-    poza_destino_id INTEGER REFERENCES pozas(id),
+    reemplazo_machos INTEGER DEFAULT 0,
+    reemplazo_hembras INTEGER DEFAULT 0,
+    engorde_machos INTEGER DEFAULT 0,
+    engorde_hembras INTEGER DEFAULT 0,
+    venta_directa_machos INTEGER DEFAULT 0,
+    venta_directa_hembras INTEGER DEFAULT 0,
     observaciones TEXT,
     fecha_creacion TIMESTAMP DEFAULT NOW()
 );
 
--- Tabla movimientos_animales
-CREATE TABLE IF NOT EXISTS movimientos_animales (
+-- Tabla control_engorde
+CREATE TABLE IF NOT EXISTS control_engorde (
     id SERIAL PRIMARY KEY,
-    animal_id INTEGER REFERENCES animales(id),
-    desde_poza_id INTEGER REFERENCES pozas(id),
-    hacia_poza_id INTEGER REFERENCES pozas(id),
-    motivo TEXT NOT NULL,
-    fecha TIMESTAMP DEFAULT NOW()
+    tipo_engorde VARCHAR(20) NOT NULL CHECK (tipo_engorde IN ('destete', 'descarte')),
+    galpon_id INTEGER REFERENCES galpones(id),
+    poza_id INTEGER REFERENCES pozas(id),
+    fecha_control DATE NOT NULL,
+    peso_promedio DECIMAL(8,2),
+    listo_venta BOOLEAN DEFAULT FALSE,
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT NOW()
 );
+
+-- Tabla ventas
+CREATE TABLE IF NOT EXISTS ventas (
+    id SERIAL PRIMARY KEY,
+    fecha_venta DATE NOT NULL,
+    cliente VARCHAR(200),
+    tipo_producto VARCHAR(20) NOT NULL CHECK (tipo_producto IN ('engorde_destete', 'engorde_descarte', 'destete_directo')),
+    cantidad INTEGER NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    total DECIMAL(10,2) NOT NULL,
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla gastos
+CREATE TABLE IF NOT EXISTS gastos (
+    id SERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('alimentacion', 'medicamentos', 'mantenimiento', 'mano_obra', 'otros')),
+    descripcion VARCHAR(200) NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    proveedor VARCHAR(100),
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT NOW()
+);
+
+-- =============================================
+-- INSERTAR DATOS BÁSICOS PARA PRUEBAS
+-- =============================================
+
+-- Galpones de ejemplo
+INSERT INTO galpones (nombre, capacidad, ubicacion) VALUES 
+('Galpón Principal', 100, 'Zona A'),
+('Galpón Secundario', 50, 'Zona B')
+ON CONFLICT DO NOTHING;
+
+-- Pozas de ejemplo
+INSERT INTO pozas (nombre, tipo, capacidad, galpon_id) VALUES
+('Poza A', 'reproductora', 10, 1),
+('Poza B', 'reproductora', 10, 1),
+('Poza C', 'lactancia', 15, 1),
+('Poza D', 'destete', 20, 2),
+('Poza E', 'engorde', 25, 2)
+ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- ÍNDICES BÁSICOS
+-- =============================================
+
+CREATE INDEX IF NOT EXISTS idx_pozas_galpon_id ON pozas(galpon_id);
+CREATE INDEX IF NOT EXISTS idx_partos_poza ON partos_simplificada(poza_id);
+CREATE INDEX IF NOT EXISTS idx_partos_fecha ON partos_simplificada(fecha_parto);
+
+-- =============================================
+-- MENSAJE FINAL
+-- =============================================
+
+DO $$ 
+BEGIN
+    RAISE NOTICE '✅ Base de datos configurada correctamente';
+    RAISE NOTICE '📊 Tablas creadas: galpones, pozas, partos_simplificada, mortalidad_lactancia, destetes_simplificada, control_engorde, ventas, gastos';
+END $$;

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Partos{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">👶 Registro de Parto</h1>
+        <p class="text-gray-600">Registra nuevos partos en el sistema</p>
+    </div>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <form method="POST" action="{{ url_for('registrar_parto') }}" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Galpón</label>
+                    <select name="galpon_id" id="galpon_select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">Seleccionar galpón</option>
+                        {% for galpon in galpones %}
+                        <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Poza Reproductora</label>
+                    <select name="poza_id" id="poza_select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required disabled>
+                        <option value="">Primero selecciona galpón</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nacidos Vivos</label>
+                    <input type="number" name="nacidos_vivos" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" min="0" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Muertos al Nacer</label>
+                    <input type="number" name="muertos_nacimiento" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" min="0" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número Parto</label>
+                    <input type="number" name="numero_parto" id="numero_parto" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" min="1" required readonly>
+                    <p class="text-xs text-gray-500 mt-1">Sistema sugiere automáticamente</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+                <textarea name="observaciones" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ej: 1 cría débil, ayudar lactancia..."></textarea>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium">
+                    Registrar Parto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('galpon_select').addEventListener('change', function() {
+    const galponId = this.value;
+    const pozaSelect = document.getElementById('poza_select');
+    
+    if (galponId) {
+        fetch(`/api/galpones/${galponId}/pozas`)
+            .then(response => response.json())
+            .then(pozas => {
+                pozaSelect.innerHTML = '<option value="">Seleccionar poza</option>';
+                pozas.forEach(poza => {
+                    pozaSelect.innerHTML += `<option value="${poza.id}">${poza.nombre}</option>`;
+                });
+                pozaSelect.disabled = false;
+            });
+    } else {
+        pozaSelect.innerHTML = '<option value="">Primero selecciona galpón</option>';
+        pozaSelect.disabled = true;
+    }
+});
+
+document.getElementById('poza_select').addEventListener('change', function() {
+    const pozaId = this.value;
+    const numeroPartoInput = document.getElementById('numero_parto');
+    
+    if (pozaId) {
+        fetch(`/api/pozas/${pozaId}/sugerir_parto`)
+            .then(response => response.json())
+            .then(data => {
+                numeroPartoInput.value = data.siguiente_parto;
+            });
+    }
+});
+</script>
+{% endblock %}
