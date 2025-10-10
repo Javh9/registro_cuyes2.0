@@ -1,136 +1,147 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pozas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">🏠 Granja de Cuyes</a>
-            <a class="btn btn-light" href="/">Inicio</a>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container mt-4">
-        <h1>🔵 Gestión de Pozas</h1>
-        
-        <!-- Formulario para crear poza -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Agregar Nueva Poza</h5>
-            </div>
-            <div class="card-body">
-                <form id="formPoza">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <select class="form-select" name="galpon_id" required>
-                                <option value="">Seleccionar Galpón</option>
-                                <option value="1">Galpón Principal</option>
-                                <option value="2">Galpón Secundario</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" name="tipo" required>
-                                <option value="">Tipo de Poza</option>
-                                <option value="reproductores">🟢 Reproductores</option>
-                                <option value="destete">🟡 Destete</option>
-                                <option value="reemplazo">🔵 Reemplazo</option>
-                                <option value="engorde">🟠 Engorde</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" name="nombre" placeholder="Nombre de la poza" required>
-                        </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" name="capacidad" placeholder="Capacidad" required>
-                        </div>
-                        <div class="col-md-1">
-                            <button type="submit" class="btn btn-primary">Agregar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+{% block title %}Pozas - Granja Inteligente{% endblock %}
 
-        <!-- Lista de pozas -->
-        <div class="card">
-            <div class="card-header">
-                <h5>Pozas Existentes</h5>
-            </div>
-            <div class="card-body">
-                {% if pozas %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Galpón</th>
-                                <th>Tipo</th>
-                                <th>Nombre</th>
-                                <th>Capacidad</th>
-                                <th>Población</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for poza in pozas %}
-                            <tr>
-                                <td>{{ poza[0] }}</td>
-                                <td>{{ poza[6] or 'N/A' }}</td>
-                                <td>
-                                    {% if poza[2] == 'reproductores' %}
-                                        <span class="badge bg-success">🟢 Reproductores</span>
-                                    {% elif poza[2] == 'destete' %}
-                                        <span class="badge bg-warning text-dark">🟡 Destete</span>
-                                    {% elif poza[2] == 'reemplazo' %}
-                                        <span class="badge bg-primary">🔵 Reemplazo</span>
-                                    {% elif poza[2] == 'engorde' %}
-                                        <span class="badge bg-orange">🟠 Engorde</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ poza[3] }}</td>
-                                <td>{{ poza[4] }}</td>
-                                <td>{{ poza[5] }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-muted">No hay pozas registradas.</p>
-                {% endif %}
-            </div>
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 text-primary">
+                <i class="bi bi-grid"></i> Gestión de Pozas
+            </h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-modern" data-bs-toggle="modal" data-bs-target="#modalPoza">
+                <i class="bi bi-plus-circle"></i> Nueva Poza
+            </button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // JavaScript para manejar el formulario
-        document.getElementById('formPoza').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            fetch('/pozas/crear', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Poza creada exitosamente!');
-                    this.reset();
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                alert('Error: ' + error);
-            });
-        });
-    </script>
-</body>
-</html>
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-body">
+                    {% if pozas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Galpón</th>
+                                    <th>Tipo</th>
+                                    <th>Nombre</th>
+                                    <th>Capacidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for poza in pozas %}
+                                <tr>
+                                    <td><strong>#{{ poza[0] }}</strong></td>
+                                    <td>
+                                        {% for galpon in galpones %}
+                                            {% if galpon[0] == poza[1] %}
+                                                {{ galpon[1] }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if poza[2] == 'reproductores' %}
+                                        <span class="badge bg-success">Reproductores</span>
+                                        {% elif poza[2] == 'destete' %}
+                                        <span class="badge bg-warning">Destete</span>
+                                        {% elif poza[2] == 'reemplazo' %}
+                                        <span class="badge bg-primary">Reemplazo</span>
+                                        {% elif poza[2] == 'engorde' %}
+                                        <span class="badge bg-orange">Engorde</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ poza[3] }}</td>
+                                    <td><span class="badge bg-secondary">{{ poza[4] }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-grid display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No hay pozas registradas</h4>
+                        <button class="btn btn-primary btn-modern" data-bs-toggle="modal" data-bs-target="#modalPoza">
+                            <i class="bi bi-plus-circle"></i> Agregar Primera Poza
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalPoza" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Poza</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formPoza">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Galpón</label>
+                        <select class="form-select" name="galpon_id" required>
+                            <option value="">Seleccionar Galpón</option>
+                            {% for galpon in galpones %}
+                            <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" name="tipo" required>
+                            <option value="">Seleccionar Tipo</option>
+                            <option value="reproductores">Reproductores</option>
+                            <option value="destete">Destete</option>
+                            <option value="reemplazo">Reemplazo</option>
+                            <option value="engorde">Engorde</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidad</label>
+                        <input type="number" class="form-control" name="capacidad" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formPoza').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/pozas/crear', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalPoza')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+});
+</script>
+{% endblock %}

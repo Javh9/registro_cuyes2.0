@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Galpones - Granja Inteligente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">
+                <i class="bi bi-building text-success"></i> Gestión de Galpones
+            </h1>
+            <p class="text-muted">Administra los galpones y su configuración</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
+                <i class="bi bi-plus-circle"></i> Nuevo Galpón
+            </button>
+        </div>
+    </div>
+
+    <!-- Lista de Galpones -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul"></i> Galpones Registrados
+                    </h5>
+                    <span class="badge bg-success fs-6" id="contador-galpones">0 galpones</span>
+                </div>
+                <div class="card-body">
+                    {% if galpones %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="bi bi-hash"></i> ID</th>
+                                    <th><i class="bi bi-building"></i> Nombre</th>
+                                    <th><i class="bi bi-people"></i> Capacidad</th>
+                                    <th><i class="bi bi-geo-alt"></i> Ubicación</th>
+                                    <th><i class="bi bi-circle-fill"></i> Estado</th>
+                                    <th><i class="bi bi-calendar"></i> Fecha Creación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for galpon in galpones %}
+                                <tr>
+                                    <td><strong>#{{ galpon[0] }}</strong></td>
+                                    <td>
+                                        <i class="bi bi-building me-1"></i>
+                                        {{ galpon[1] }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ galpon[2] }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ galpon[3] or 'No especificada' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if galpon[4] == 'activo' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Activo
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ galpon[4] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ galpon[5].strftime('%d/%m/%Y') if galpon[5] else 'N/A' }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No hay galpones registrados</h4>
+                        <p class="text-muted">Comienza agregando tu primer galpón</p>
+                        <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
+                            <i class="bi bi-plus-circle"></i> Agregar Primer Galpón
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nuevo Galpón -->
+<div class="modal fade" id="modalGalpon" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle text-success"></i> Nuevo Galpón
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formGalpon">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Galpón</label>
+                        <input type="text" class="form-control" name="nombre" placeholder="Ej: Galpón Principal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidad</label>
+                        <input type="number" class="form-control" name="capacidad" placeholder="Ej: 100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" name="ubicacion" placeholder="Ej: Zona Norte">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar Galpón
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Actualizar contador de galpones
+    document.addEventListener('DOMContentLoaded', function() {
+        const galpones = {{ galpones|length|tojson }};
+        document.getElementById('contador-galpones').textContent = galpones + ' galpones';
+    });
+
+    // Manejo del formulario de galpón
+    document.getElementById('formGalpon').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+        submitBtn.disabled = true;
+        
+        fetch('/galpones/crear', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cerrar modal y recargar
+                bootstrap.Modal.getInstance(document.getElementById('modalGalpon')).hide();
+                showToast('✅ Galpón creado exitosamente', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast('❌ Error: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            showToast('❌ Error de conexión', 'danger');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Función para mostrar notificaciones toast
+    function showToast(message, type = 'info') {
+        const toastContainer = document.createElement('div');
+        toastContainer.innerHTML = `
+            <div class="toast align-items-center text-bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toastContainer);
+        
+        const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+        toast.show();
+        
+        // Remover del DOM después de ocultar
+        toastContainer.querySelector('.toast').addEventListener('hidden.bs.toast', () => {
+            toastContainer.remove();
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,84 +1,44 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Registro de Cuyes</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="/">🏠 Granja de Cuyes</a>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container mt-4">
-        <h1>Bienvenido al Sistema de Gestión</h1>
-        <p>Sistema integral para la gestión de granja de cuyes</p>
+{% block title %}Inicio - Granja Inteligente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 text-success">
+                <i class="bi bi-house-heart"></i> Bienvenido al Sistema
+            </h1>
+            <p class="text-muted">Gestión integral para tu granja de cuyes</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card card-modern border-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-building display-4 text-success mb-3"></i>
+                    <h5 class="card-title">Galpones</h5>
+                    <p class="card-text text-muted">Gestión de galpones y pozas</p>
+                    <a href="/galpones" class="btn btn-success btn-modern">
+                        <i class="bi bi-building"></i> Ver Galpones
+                    </a>
+                </div>
+            </div>
+        </div>
         
-        <!-- Primera fila - Manteniendo tu diseño original -->
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">📦 Galpones</h5>
-                        <p class="card-text">Gestiona los galpones y sus pozas</p>
-                        <a href="/galpones" class="btn btn-success">Ver Galpones</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">🔵 Pozas</h5>
-                        <p class="card-text">Administra las pozas por tipo</p>
-                        <a href="/pozas" class="btn btn-primary">Ver Pozas</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Segunda fila - Nuevos módulos -->
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">🐭 Animales</h5>
-                        <p class="card-text">Registro y gestión de animales</p>
-                        <a href="/animales" class="btn btn-info">Ver Animales</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">👶 Partos</h5>
-                        <p class="card-text">Registro de partos y nacimientos</p>
-                        <a href="/partos" class="btn btn-warning">Ver Partos</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tercera fila - Futuros módulos (opcional) -->
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">🚀 Próximos Módulos</h5>
-                        <p class="card-text">
-                            <span class="badge bg-secondary">Destetes</span>
-                            <span class="badge bg-secondary">Engorde</span>
-                            <span class="badge bg-secondary">Ventas</span>
-                            <span class="badge bg-secondary">Balance</span>
-                        </p>
-                    </div>
+        <div class="col-md-6">
+            <div class="card card-modern border-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-grid display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Pozas</h5>
+                    <p class="card-text text-muted">Administración de pozas</p>
+                    <a href="/pozas" class="btn btn-primary btn-modern">
+                        <i class="bi bi-grid"></i> Ver Pozas
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+{% endblock %}

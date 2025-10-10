@@ -1,113 +1,116 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Galpones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="/">🏠 Granja de Cuyes</a>
-            <a class="btn btn-light" href="/">Inicio</a>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container mt-4">
-        <h1>📦 Gestión de Galpones</h1>
-        
-        <!-- Formulario para crear galpón -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Agregar Nuevo Galpón</h5>
-            </div>
-            <div class="card-body">
-                <form id="formGalpon">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <input type="text" class="form-control" name="nombre" placeholder="Nombre del galpón" required>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="number" class="form-control" name="capacidad" placeholder="Capacidad" required>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" name="ubicacion" placeholder="Ubicación">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-success">Agregar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+{% block title %}Galpones - Granja Inteligente{% endblock %}
 
-        <!-- Lista de galpones -->
-        <div class="card">
-            <div class="card-header">
-                <h5>Galpones Existentes</h5>
-            </div>
-            <div class="card-body">
-                {% if galpones %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Capacidad</th>
-                                <th>Ubicación</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for galpon in galpones %}
-                            <tr>
-                                <td>{{ galpon[0] }}</td>
-                                <td>{{ galpon[1] }}</td>
-                                <td>{{ galpon[2] }}</td>
-                                <td>{{ galpon[3] or 'N/A' }}</td>
-                                <td>
-                                    <span class="badge bg-success">{{ galpon[4] }}</span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-muted">No hay galpones registrados.</p>
-                {% endif %}
-            </div>
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 text-success">
+                <i class="bi bi-building"></i> Gestión de Galpones
+            </h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
+                <i class="bi bi-plus-circle"></i> Nuevo Galpón
+            </button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // JavaScript para manejar el formulario
-        document.getElementById('formGalpon').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            fetch('/galpones/crear', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Galpón creado exitosamente!');
-                    this.reset();
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                alert('Error: ' + error);
-            });
-        });
-    </script>
-</body>
-</html>
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-body">
+                    {% if galpones %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Capacidad</th>
+                                    <th>Ubicación</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for galpon in galpones %}
+                                <tr>
+                                    <td><strong>#{{ galpon[0] }}</strong></td>
+                                    <td>{{ galpon[1] }}</td>
+                                    <td><span class="badge bg-primary">{{ galpon[2] }}</span></td>
+                                    <td>{{ galpon[3] or 'N/A' }}</td>
+                                    <td><span class="badge bg-success">{{ galpon[4] }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No hay galpones registrados</h4>
+                        <button class="btn btn-success btn-modern" data-bs-toggle="modal" data-bs-target="#modalGalpon">
+                            <i class="bi bi-plus-circle"></i> Agregar Primer Galpón
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalGalpon" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Galpón</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formGalpon">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidad</label>
+                        <input type="number" class="form-control" name="capacidad" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" name="ubicacion">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formGalpon').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/galpones/crear', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalGalpon')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+});
+</script>
+{% endblock %}

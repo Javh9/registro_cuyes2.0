@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template
 from models.poza import Poza
+from models.galpon import Galpon  # ✅ Importar modelo de galpones
 
 bp = Blueprint('poza', __name__)
 
@@ -7,7 +8,12 @@ bp = Blueprint('poza', __name__)
 def listar_pozas():
     poza_model = Poza()
     pozas = poza_model.obtener_todos()
-    return render_template('pozas.html', pozas=pozas)
+    
+    # ✅ Obtener galpones para el formulario
+    galpon_model = Galpon()
+    galpones = galpon_model.obtener_todos()
+    
+    return render_template('pozas.html', pozas=pozas, galpones=galpones)  # ✅ Pasar galpones
 
 @bp.route('/crear', methods=['POST'])
 def crear_poza():
