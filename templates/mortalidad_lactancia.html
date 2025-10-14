@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortalidad Lactancia - Granja de Cuyes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-green-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-heart-crack mr-2"></i>Mortalidad en Lactancia
+            </h1>
+            <a href="/" class="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container mx-auto p-6">
+        <!-- Alertas -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de Registro -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-edit mr-2"></i>Registrar Mortalidad
+            </h2>
+            
+            <form id="formMortalidad" action="/registrar_mortalidad_lactancia" method="POST">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Galpón -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-house mr-2"></i>Galpón
+                        </label>
+                        <select name="galpon_id" id="galpon_id" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Seleccionar Galpón</option>
+                            {% for galpon in galpones %}
+                            <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Poza (se carga dinámicamente) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-layer-group mr-2"></i>Poza con Lactantes
+                        </label>
+                        <select name="poza_id" id="poza_id" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                disabled>
+                            <option value="">Primero seleccione un galpón</option>
+                        </select>
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-skull mr-2"></i>Cantidad de Muertos
+                        </label>
+                        <input type="number" name="cantidad" min="1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="Ej: 2">
+                    </div>
+
+                    <!-- Causa -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-bug mr-2"></i>Causa de Muerte
+                        </label>
+                        <select name="causa" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Seleccionar Causa</option>
+                            <option value="natural">Muerte Natural</option>
+                            <option value="accidente">Accidente</option>
+                            <option value="enfermedad">Enfermedad</option>
+                            <option value="desconocida">Desconocida</option>
+                        </select>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-sticky-note mr-2"></i>Observaciones
+                        </label>
+                        <textarea name="observaciones" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  placeholder="Detalles adicionales..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Botón de Envío -->
+                <div class="mt-6 flex justify-end">
+                    <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                        <i class="fas fa-save mr-2"></i>Registrar Mortalidad
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-yellow-600 mt-1 mr-3"></i>
+                <div>
+                    <h3 class="font-semibold text-yellow-800">Información Importante</h3>
+                    <p class="text-yellow-700 text-sm mt-1">
+                        Registre aquí las muertes de crías durante el período de lactancia (primeras 3 semanas).
+                        Este registro ayuda a monitorear la salud del plantel y tomar acciones preventivas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const galponSelect = document.getElementById('galpon_id');
+            const pozaSelect = document.getElementById('poza_id');
+
+            galponSelect.addEventListener('change', function() {
+                const galponId = this.value;
+                
+                if (galponId) {
+                    // Habilitar y limpiar select de pozas
+                    pozaSelect.disabled = false;
+                    pozaSelect.innerHTML = '<option value="">Cargando pozas...</option>';
+                    
+                    // Cargar pozas con lactantes del galpón seleccionado
+                    fetch(`/api/galpones/${galponId}/pozas_lactancia`)
+                        .then(response => response.json())
+                        .then(pozas => {
+                            if (pozas.length > 0) {
+                                pozaSelect.innerHTML = '<option value="">Seleccionar Poza</option>';
+                                pozas.forEach(poza => {
+                                    const option = document.createElement('option');
+                                    option.value = poza.id;
+                                    option.textContent = `${poza.nombre} (${poza.tipo})`;
+                                    pozaSelect.appendChild(option);
+                                });
+                            } else {
+                                pozaSelect.innerHTML = '<option value="">No hay pozas con lactantes</option>';
+                                pozaSelect.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error cargando pozas:', error);
+                            pozaSelect.innerHTML = '<option value="">Error al cargar pozas</option>';
+                        });
+                } else {
+                    pozaSelect.innerHTML = '<option value="">Primero seleccione un galpón</option>';
+                    pozaSelect.disabled = true;
+                }
+            });
+
+            // Validación del formulario
+            document.getElementById('formMortalidad').addEventListener('submit', function(e) {
+                const cantidad = document.querySelector('input[name="cantidad"]').value;
+                const causa = document.querySelector('select[name="causa"]').value;
+                
+                if (!cantidad || cantidad < 1) {
+                    e.preventDefault();
+                    alert('Por favor ingrese una cantidad válida');
+                    return;
+                }
+                
+                if (!causa) {
+                    e.preventDefault();
+                    alert('Por favor seleccione una causa');
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

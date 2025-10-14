@@ -1,10 +1,626 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destetes - Granja de Cuyes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-blue-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-baby mr-2"></i>Registro de Destetes por Pozas
+            </h1>
+            <a href="/" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
 
-{% block title %}Destetes{% endblock %}
+    <!-- Contenido Principal -->
+    <div class="container mx-auto p-6">
+        <!-- Alertas -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold text-gray-800">🟡 Destetes</h1>
-    <p class="text-gray-600">Página en construcción</p>
-</div>
-{% endblock %}
+        <!-- Formulario de Destete - POR POZAS -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800">
+                <i class="fas fa-edit mr-2"></i>Destete por Pozas - Paso a Paso
+            </h2>
+            
+            <form id="formDestete" action="/registrar_destete_pozas" method="POST">
+                <input type="hidden" name="galpon_id" id="galpon_id">
+                <input type="hidden" name="destetes_data" id="destetes_data">
+
+                <!-- Paso 1: Selección de Galpón -->
+                <div id="step1" class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">
+                        <span class="bg-blue-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center mr-2">1</span>
+                        Seleccionar Galpón
+                    </h3>
+                    
+                    <div class="max-w-md mx-auto">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-house mr-2"></i>Galpón a Destetar
+                        </label>
+                        <select name="galpon_select" id="galpon_select" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Seleccionar Galpón</option>
+                            {% for galpon in galpones %}
+                            <option value="{{ galpon[0] }}">{{ galpon[1] }} - {{ galpon[3] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="button" id="btnNextStep1" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center"
+                                disabled>
+                            Continuar a Pozas <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Registro por Pozas -->
+                <div id="step2" class="mb-8 hidden">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">
+                        <span class="bg-blue-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center mr-2">2</span>
+                        Registro por Pozas
+                    </h3>
+
+                    <!-- Información del Galpón -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-blue-800" id="infoGalponNombre">Galpón seleccionado</h4>
+                                <p class="text-blue-700 text-sm">Agregue las pozas una por una con sus conteos</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-blue-600">Total acumulado</p>
+                                <p class="text-xl font-bold text-blue-800">
+                                    <span id="totalAcumuladoMachos">0</span> machos - 
+                                    <span id="totalAcumuladoHembras">0</span> hembras
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario para agregar poza -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                        <h4 class="font-medium text-gray-800 mb-3">
+                            <i class="fas fa-plus-circle mr-2"></i>Agregar Poza
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Selección de Poza -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Poza
+                                </label>
+                                <select id="poza_select" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Seleccionar Poza</option>
+                                </select>
+                            </div>
+
+                            <!-- Machos Destetados -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Machos
+                                </label>
+                                <input type="number" id="machos_poza" min="0" value="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <!-- Hembras Destetadas -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Hembras
+                                </label>
+                                <input type="number" id="hembras_poza" min="0" value="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <!-- Botón Agregar -->
+                            <div class="flex items-end">
+                                <button type="button" id="btnAgregarPoza"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center w-full justify-center"
+                                        disabled>
+                                    <i class="fas fa-plus mr-2"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Pozas Agregadas -->
+                    <div id="listaPozas" class="mb-6">
+                        <h4 class="font-medium text-gray-800 mb-3">
+                            <i class="fas fa-list mr-2"></i>Pozas Registradas
+                        </h4>
+                        <div id="contenidoPozas" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                                <i class="fas fa-inbox text-3xl mb-2"></i>
+                                <p>No hay pozas agregadas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="button" id="btnBackStep2" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Cambiar Galpón
+                        </button>
+                        <button type="button" id="btnNextStep2" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center"
+                                disabled>
+                            Distribuir Destinos <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Distribución por Destinos -->
+                <div id="step3" class="mb-8 hidden">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">
+                        <span class="bg-blue-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center mr-2">3</span>
+                        Distribución por Destinos
+                    </h3>
+
+                    <!-- Resumen Final -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <h4 class="font-semibold text-green-800 text-center mb-2">Resumen del Destete</h4>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-sm text-green-600">Total Animales</p>
+                                <p class="text-2xl font-bold text-green-800" id="resumenTotal">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-green-600">Machos</p>
+                                <p class="text-2xl font-bold text-blue-800" id="resumenMachos">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-green-600">Hembras</p>
+                                <p class="text-2xl font-bold text-pink-800" id="resumenHembras">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pozas Destetadas -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                        <h4 class="font-medium text-gray-800 mb-3">
+                            <i class="fas fa-layer-group mr-2"></i>Detalle por Pozas
+                        </h4>
+                        <div id="detallePozas" class="text-sm text-gray-600">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Destinos -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <!-- Reemplazo -->
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h4 class="font-semibold text-green-700 mb-3 text-center">
+                                <i class="fas fa-recycle mr-2"></i>Para Reemplazo
+                            </h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm text-green-600 mb-1">Machos para Reemplazo</label>
+                                    <input type="number" name="reemplazo_machos" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 destino-input"
+                                           data-tipo="machos">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-green-600 mb-1">Hembras para Reemplazo</label>
+                                    <input type="number" name="reemplazo_hembras" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 destino-input"
+                                           data-tipo="hembras">
+                                </div>
+                            </div>
+                            <p class="text-xs text-green-600 mt-2 text-center">Hembras de excelente genética</p>
+                        </div>
+
+                        <!-- Engorde -->
+                        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <h4 class="font-semibold text-yellow-700 mb-3 text-center">
+                                <i class="fas fa-weight-scale mr-2"></i>Para Engorde
+                            </h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm text-yellow-600 mb-1">Machos para Engorde</label>
+                                    <input type="number" name="engorde_machos" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 destino-input"
+                                           data-tipo="machos">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-yellow-600 mb-1">Hembras para Engorde</label>
+                                    <input type="number" name="engorde_hembras" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 destino-input"
+                                           data-tipo="hembras">
+                                </div>
+                            </div>
+                            <p class="text-xs text-yellow-600 mt-2 text-center">Animales para crecimiento</p>
+                        </div>
+
+                        <!-- Venta Directa -->
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <h4 class="font-semibold text-red-700 mb-3 text-center">
+                                <i class="fas fa-dollar-sign mr-2"></i>Venta Directa
+                            </h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm text-red-600 mb-1">Machos para Venta</label>
+                                    <input type="number" name="venta_directa_machos" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 destino-input"
+                                           data-tipo="machos">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-red-600 mb-1">Hembras para Venta</label>
+                                    <input type="number" name="venta_directa_hembras" min="0" value="0"
+                                           class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 destino-input"
+                                           data-tipo="hembras">
+                                </div>
+                            </div>
+                            <p class="text-xs text-red-600 mt-2 text-center">Animales listos para comercializar</p>
+                        </div>
+                    </div>
+
+                    <!-- Validación -->
+                    <div id="validacionDestinos" class="p-4 rounded-lg hidden mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle mr-3 text-lg" id="validacionIcono"></i>
+                            <div>
+                                <h4 class="font-medium" id="validacionTitulo"></h4>
+                                <p class="text-sm mt-1" id="validacionMensaje"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="button" id="btnBackStep3" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Volver a Pozas
+                        </button>
+                        <button type="button" id="btnNextStep3" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center"
+                                disabled>
+                            Finalizar <i class="fas fa-check ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 4: Confirmación -->
+                <div id="step4" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">
+                        <span class="bg-blue-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center mr-2">4</span>
+                        Confirmación Final
+                    </h3>
+
+                    <!-- Resumen Completo -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                        <h4 class="font-semibold text-green-800 text-center mb-4 text-xl">Resumen del Destete</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-sm text-gray-600">Total Animales</p>
+                                <p class="text-2xl font-bold text-green-800" id="confirmacionTotal">0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-sm text-gray-600">Machos</p>
+                                <p class="text-2xl font-bold text-blue-800" id="confirmacionMachos">0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-sm text-gray-600">Hembras</p>
+                                <p class="text-2xl font-bold text-pink-800" id="confirmacionHembras">0</p>
+                            </div>
+                        </div>
+
+                        <!-- Distribución -->
+                        <div class="bg-white p-4 rounded-lg">
+                            <h5 class="font-medium text-gray-700 mb-3">Distribución Final</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                <div class="border border-green-200 rounded-lg p-3">
+                                    <p class="text-sm text-green-600 font-medium">Reemplazo</p>
+                                    <p class="text-lg font-bold text-green-800" id="confirmacionReemplazo">0</p>
+                                </div>
+                                <div class="border border-yellow-200 rounded-lg p-3">
+                                    <p class="text-sm text-yellow-600 font-medium">Engorde</p>
+                                    <p class="text-lg font-bold text-yellow-800" id="confirmacionEngorde">0</p>
+                                </div>
+                                <div class="border border-red-200 rounded-lg p-3">
+                                    <p class="text-sm text-red-600 font-medium">Venta</p>
+                                    <p class="text-lg font-bold text-red-800" id="confirmacionVenta">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-sticky-note mr-2"></i>Observaciones (Opcional)
+                        </label>
+                        <textarea name="observaciones" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Observaciones sobre el destete..."></textarea>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="button" id="btnBackStep4" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Corregir
+                        </button>
+                        <button type="submit" id="btnSubmit"
+                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center">
+                            <i class="fas fa-save mr-2"></i> Confirmar Destete
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentStep = 1;
+            let galponId = null;
+            let pozasAgregadas = [];
+            let totalMachos = 0;
+            let totalHembras = 0;
+            let pozasDisponibles = [];
+
+            const steps = {
+                1: document.getElementById('step1'),
+                2: document.getElementById('step2'),
+                3: document.getElementById('step3'),
+                4: document.getElementById('step4')
+            };
+
+            // Paso 1: Selección de galpón
+            document.getElementById('galpon_select').addEventListener('change', function() {
+                galponId = this.value;
+                document.getElementById('btnNextStep1').disabled = !galponId;
+                
+                if (galponId) {
+                    document.getElementById('galpon_id').value = galponId;
+                    
+                    // Cargar pozas del galpón
+                    fetch(`/api/galpones/${galponId}/pozas`)
+                        .then(response => response.json())
+                        .then(pozas => {
+                            pozasDisponibles = pozas;
+                            const pozaSelect = document.getElementById('poza_select');
+                            pozaSelect.innerHTML = '<option value="">Seleccionar Poza</option>';
+                            pozas.forEach(poza => {
+                                const option = document.createElement('option');
+                                option.value = poza.id;
+                                option.textContent = `${poza.nombre} (${poza.tipo})`;
+                                option.setAttribute('data-nombre', poza.nombre);
+                                pozaSelect.appendChild(option);
+                            });
+                        });
+                }
+            });
+
+            // Agregar poza al listado
+            document.getElementById('btnAgregarPoza').addEventListener('click', function() {
+                const pozaId = document.getElementById('poza_select').value;
+                const pozaNombre = document.getElementById('poza_select').selectedOptions[0].getAttribute('data-nombre');
+                const machos = parseInt(document.getElementById('machos_poza').value) || 0;
+                const hembras = parseInt(document.getElementById('hembras_poza').value) || 0;
+
+                if (!pozaId || (machos === 0 && hembras === 0)) {
+                    alert('Seleccione una poza e ingrese al menos un animal');
+                    return;
+                }
+
+                // Verificar si la poza ya fue agregada
+                if (pozasAgregadas.find(p => p.poza_id == pozaId)) {
+                    alert('Esta poza ya fue agregada');
+                    return;
+                }
+
+                // Agregar poza
+                const pozaData = {
+                    poza_id: pozaId,
+                    poza_nombre: pozaNombre,
+                    machos: machos,
+                    hembras: hembras
+                };
+                
+                pozasAgregadas.push(pozaData);
+                totalMachos += machos;
+                totalHembras += hembras;
+
+                // Actualizar interfaz
+                actualizarListaPozas();
+                actualizarTotales();
+                resetFormularioPoza();
+
+                // Habilitar siguiente paso si hay pozas agregadas
+                document.getElementById('btnNextStep2').disabled = pozasAgregadas.length === 0;
+            });
+
+            function actualizarListaPozas() {
+                const contenido = document.getElementById('contenidoPozas');
+                
+                if (pozasAgregadas.length === 0) {
+                    contenido.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p>No hay pozas agregadas</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                contenido.innerHTML = pozasAgregadas.map((poza, index) => `
+                    <div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="flex-1">
+                            <h5 class="font-medium text-gray-800">${poza.poza_nombre}</h5>
+                            <div class="flex space-x-4 text-sm text-gray-600">
+                                <span><i class="fas fa-mars mr-1"></i> ${poza.machos} machos</span>
+                                <span><i class="fas fa-venus mr-1"></i> ${poza.hembras} hembras</span>
+                                <span>Total: ${poza.machos + poza.hembras} animales</span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="eliminarPoza(${index})" 
+                                class="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            function actualizarTotales() {
+                document.getElementById('totalAcumuladoMachos').textContent = totalMachos;
+                document.getElementById('totalAcumuladoHembras').textContent = totalHembras;
+                
+                document.getElementById('resumenTotal').textContent = totalMachos + totalHembras;
+                document.getElementById('resumenMachos').textContent = totalMachos;
+                document.getElementById('resumenHembras').textContent = totalHembras;
+                
+                document.getElementById('confirmacionTotal').textContent = totalMachos + totalHembras;
+                document.getElementById('confirmacionMachos').textContent = totalMachos;
+                document.getElementById('confirmacionHembras').textContent = totalHembras;
+
+                // Actualizar detalle de pozas
+                const detallePozas = document.getElementById('detallePozas');
+                detallePozas.innerHTML = pozasAgregadas.map(poza => 
+                    `<div class="flex justify-between py-1 border-b border-gray-100">
+                        <span>${poza.poza_nombre}:</span>
+                        <span>${poza.machos} machos, ${poza.hembras} hembras</span>
+                    </div>`
+                ).join('');
+            }
+
+            function resetFormularioPoza() {
+                document.getElementById('machos_poza').value = '0';
+                document.getElementById('hembras_poza').value = '0';
+                document.getElementById('btnAgregarPoza').disabled = true;
+            }
+
+            // Validar formulario de poza
+            document.getElementById('poza_select').addEventListener('change', validarFormularioPoza);
+            document.getElementById('machos_poza').addEventListener('input', validarFormularioPoza);
+            document.getElementById('hembras_poza').addEventListener('input', validarFormularioPoza);
+
+            function validarFormularioPoza() {
+                const pozaId = document.getElementById('poza_select').value;
+                const machos = parseInt(document.getElementById('machos_poza').value) || 0;
+                const hembras = parseInt(document.getElementById('hembras_poza').value) || 0;
+                
+                document.getElementById('btnAgregarPoza').disabled = 
+                    !pozaId || (machos === 0 && hembras === 0);
+            }
+
+            // Eliminar poza
+            window.eliminarPoza = function(index) {
+                const poza = pozasAgregadas[index];
+                totalMachos -= poza.machos;
+                totalHembras -= poza.hembras;
+                pozasAgregadas.splice(index, 1);
+                
+                actualizarListaPozas();
+                actualizarTotales();
+                document.getElementById('btnNextStep2').disabled = pozasAgregadas.length === 0;
+            };
+
+            // Navegación
+            function showStep(step) {
+                Object.values(steps).forEach(stepElement => {
+                    stepElement.classList.add('hidden');
+                });
+                steps[step].classList.remove('hidden');
+                currentStep = step;
+
+                if (step === 2 && galponId) {
+                    const galponNombre = document.getElementById('galpon_select').selectedOptions[0].text;
+                    document.getElementById('infoGalponNombre').textContent = galponNombre;
+                }
+            }
+
+            // Botones de navegación
+            document.getElementById('btnNextStep1').addEventListener('click', () => showStep(2));
+            document.getElementById('btnNextStep2').addEventListener('click', () => {
+                // Preparar datos para enviar
+                document.getElementById('destetes_data').value = JSON.stringify(pozasAgregadas);
+                showStep(3);
+            });
+            document.getElementById('btnNextStep3').addEventListener('click', () => {
+                // Actualizar confirmación de distribución
+                const reemplazoMachos = parseInt(document.querySelector('input[name="reemplazo_machos"]').value) || 0;
+                const reemplazoHembras = parseInt(document.querySelector('input[name="reemplazo_hembras"]').value) || 0;
+                const engordeMachos = parseInt(document.querySelector('input[name="engorde_machos"]').value) || 0;
+                const engordeHembras = parseInt(document.querySelector('input[name="engorde_hembras"]').value) || 0;
+                const ventaMachos = parseInt(document.querySelector('input[name="venta_directa_machos"]').value) || 0;
+                const ventaHembras = parseInt(document.querySelector('input[name="venta_directa_hembras"]').value) || 0;
+                
+                document.getElementById('confirmacionReemplazo').textContent = reemplazoMachos + reemplazoHembras;
+                document.getElementById('confirmacionEngorde').textContent = engordeMachos + engordeHembras;
+                document.getElementById('confirmacionVenta').textContent = ventaMachos + ventaHembras;
+                
+                showStep(4);
+            });
+
+            document.getElementById('btnBackStep2').addEventListener('click', () => showStep(1));
+            document.getElementById('btnBackStep3').addEventListener('click', () => showStep(2));
+            document.getElementById('btnBackStep4').addEventListener('click', () => showStep(3));
+
+            // Validación de destinos
+            function validarDestinos() {
+                let machosAsignados = 0;
+                let hembrasAsignadas = 0;
+                
+                document.querySelectorAll('.destino-input[data-tipo="machos"]').forEach(input => {
+                    machosAsignados += parseInt(input.value) || 0;
+                });
+                
+                document.querySelectorAll('.destino-input[data-tipo="hembras"]').forEach(input => {
+                    hembrasAsignadas += parseInt(input.value) || 0;
+                });
+                
+                const validacionDiv = document.getElementById('validacionDestinos');
+                const icono = document.getElementById('validacionIcono');
+                const titulo = document.getElementById('validacionTitulo');
+                const mensaje = document.getElementById('validacionMensaje');
+                const btnNext = document.getElementById('btnNextStep3');
+                
+                if (machosAsignados === totalMachos && hembrasAsignadas === totalHembras) {
+                    validacionDiv.classList.add('hidden');
+                    btnNext.disabled = false;
+                    return true;
+                } else {
+                    validacionDiv.classList.remove('hidden');
+                    validacionDiv.className = 'p-4 rounded-lg bg-yellow-100 border border-yellow-200 mb-6';
+                    icono.className = 'fas fa-exclamation-triangle mr-3 text-lg text-yellow-600';
+                    titulo.textContent = 'Distribución incompleta';
+                    titulo.className = 'font-medium text-yellow-800';
+                    mensaje.textContent = `Machos: ${machosAsignados}/${totalMachos} - Hembras: ${hembrasAsignadas}/${totalHembras}`;
+                    mensaje.className = 'text-sm mt-1 text-yellow-700';
+                    btnNext.disabled = true;
+                    return false;
+                }
+            }
+
+            document.querySelectorAll('.destino-input').forEach(input => {
+                input.addEventListener('input', validarDestinos);
+            });
+
+            // Inicializar
+            validarFormularioPoza();
+            validarDestinos();
+        });
+    </script>
+</body>
+</html>
