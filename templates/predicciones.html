@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicciones - Granja de Cuyes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-indigo-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-crystal-ball mr-2"></i>Predicciones y Alertas Inteligentes
+            </h1>
+            <a href="/" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container mx-auto p-6">
+        <!-- Resumen de Predicciones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Partos Próximos -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Partos Próximos</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalPartosProximos">0</p>
+                    </div>
+                    <i class="fas fa-baby text-blue-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500">En los próximos 30 días</p>
+            </div>
+
+            <!-- Ventas Estimadas -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Ventas Estimadas</p>
+                        <p class="text-2xl font-bold text-gray-800" id="ventasEstimadas">S/ 0</p>
+                    </div>
+                    <i class="fas fa-chart-line text-green-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500">Predicción del mes</p>
+            </div>
+
+            <!-- Alertas Activas -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Alertas Activas</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalAlertas">0</p>
+                    </div>
+                    <i class="fas fa-bell text-red-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500">Requieren atención</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Partos Próximos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-baby mr-2"></i>Partos Próximos (30 días)
+                </h3>
+                <div id="listaPartosProximos" class="space-y-3">
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Cargando predicciones...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predicción de Ventas -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-chart-line mr-2"></i>Predicción de Ventas Mensuales
+                </h3>
+                <div id="prediccionVentas" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Analizando datos históricos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas Inteligentes -->
+        <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                <i class="fas fa-bell mr-2"></i>Alertas Inteligentes
+            </h3>
+            <div id="alertasInteligentes" class="space-y-3">
+                <div class="text-center py-4 text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Analizando patrones...
+                </div>
+            </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                <i class="fas fa-lightbulb mr-2"></i>Recomendaciones
+            </h3>
+            <div id="recomendaciones" class="space-y-3">
+                <div class="text-center py-4 text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando recomendaciones...
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                <div>
+                    <h3 class="font-semibold text-blue-800">Sistema de Predicciones Inteligentes</h3>
+                    <p class="text-blue-700 text-sm mt-1">
+                        • Las predicciones se basan en el análisis de datos históricos<br>
+                        • Las alertas detectan patrones anómalos automáticamente<br>
+                        • La confianza aumenta con más datos históricos<br>
+                        • El sistema aprende y mejora con el tiempo
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarPredicciones();
+            setInterval(cargarPredicciones, 60000); // Actualizar cada minuto
+        });
+
+        function cargarPredicciones() {
+            // Cargar partos próximos
+            fetch('/api/predicciones/partos')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarPartosProximos(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando partos próximos:', error);
+                });
+
+            // Cargar predicción de ventas
+            fetch('/api/predicciones/ventas')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarPrediccionVentas(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando predicción ventas:', error);
+                });
+
+            // Cargar alertas
+            fetch('/api/predicciones/alertas')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarAlertas(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando alertas:', error);
+                });
+
+            // Cargar recomendaciones
+            fetch('/api/predicciones/recomendaciones')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarRecomendaciones(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando recomendaciones:', error);
+                });
+        }
+
+        function actualizarPartosProximos(partos) {
+            document.getElementById('totalPartosProximos').textContent = partos.length;
+            
+            const container = document.getElementById('listaPartosProximos');
+            
+            if (partos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-info-circle text-2xl mb-2"></i>
+                        <p>No hay partos próximos predecidos</p>
+                        <p class="text-sm mt-1">El sistema necesita más datos históricos</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = partos.map(parto => {
+                // Determinar color según días faltantes
+                let colorFondo = '';
+                let colorTexto = '';
+                
+                if (parto.dias_faltantes <= 7) {
+                    colorFondo = 'bg-red-50';
+                    colorTexto = 'text-red-800';
+                } else if (parto.dias_faltantes <= 14) {
+                    colorFondo = 'bg-yellow-50';
+                    colorTexto = 'text-yellow-800';
+                } else {
+                    colorFondo = 'bg-green-50';
+                    colorTexto = 'text-green-800';
+                }
+
+                return `
+                    <div class="${colorFondo} border rounded-lg p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-semibold ${colorTexto}">${parto.galpon} - ${parto.poza}</div>
+                                <div class="text-sm text-gray-600">Parto #${parto.numero_parto_estimado}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold ${colorTexto}">${parto.dias_faltantes} días</div>
+                                <div class="text-xs text-gray-500">${parto.confianza}% confianza</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <i class="fas fa-calendar mr-1"></i>${parto.fecha_estimada} 
+                            • Ciclo: ${parto.ciclo_promedio} días
+                            • Historial: ${parto.historico_ciclos} ciclos
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarPrediccionVentas(prediccion) {
+            document.getElementById('ventasEstimadas').textContent = `S/ ${prediccion.ventas_estimadas.toFixed(2)}`;
+            
+            const container = document.getElementById('prediccionVentas');
+            
+            let tendenciaIcono = 'fa-minus';
+            let tendenciaColor = 'text-gray-500';
+            let tendenciaTexto = 'Estable';
+            
+            if (prediccion.tendencia > 100) {
+                tendenciaIcono = 'fa-arrow-up';
+                tendenciaColor = 'text-green-500';
+                tendenciaTexto = 'Alta';
+            } else if (prediccion.tendencia < -100) {
+                tendenciaIcono = 'fa-arrow-down';
+                tendenciaColor = 'text-red-500';
+                tendenciaTexto = 'Baja';
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-800">S/ ${prediccion.ventas_promedio.toFixed(2)}</div>
+                        <div class="text-sm text-blue-600">Promedio Mensual</div>
+                    </div>
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-800">${prediccion.confianza.toFixed(0)}%</div>
+                        <div class="text-sm text-green-600">Confianza</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas ${tendenciaIcono} ${tendenciaColor} mr-2"></i>
+                        <span class="font-medium ${tendenciaColor}">Tendencia: ${tendenciaTexto}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        Basado en ${prediccion.meses_historial} meses
+                    </div>
+                </div>
+                
+                ${prediccion.confianza < 70 ? `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-yellow-500 mr-2"></i>
+                            <div class="text-sm text-yellow-700">
+                                La confianza es baja. El sistema necesita más datos históricos para mejorar las predicciones.
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function actualizarAlertas(alertas) {
+            document.getElementById('totalAlertas').textContent = alertas.length;
+            
+            const container = document.getElementById('alertasInteligentes');
+            
+            if (alertas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-check-circle mr-2"></i>No hay alertas activas
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alertas.map(alerta => {
+                let colorFondo = '';
+                let colorIcono = '';
+                
+                switch(alerta.nivel) {
+                    case 'alto':
+                        colorFondo = 'bg-red-50 border-red-200';
+                        colorIcono = 'text-red-500';
+                        break;
+                    case 'medio':
+                        colorFondo = 'bg-yellow-50 border-yellow-200';
+                        colorIcono = 'text-yellow-500';
+                        break;
+                    case 'bajo':
+                        colorFondo = 'bg-blue-50 border-blue-200';
+                        colorIcono = 'text-blue-500';
+                        break;
+                }
+
+                return `
+                    <div class="${colorFondo} border rounded-lg p-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-bell ${colorIcono} mt-1 mr-3"></i>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">${alerta.titulo}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${alerta.mensaje}</p>
+                                <p class="text-xs text-gray-500 mt-2">${alerta.fecha}</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full ${colorIcono.replace('text', 'bg')} bg-opacity-20">
+                                ${alerta.nivel.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarRecomendaciones(recomendaciones) {
+            const container = document.getElementById('recomendaciones');
+            
+            if (recomendaciones.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-info-circle mr-2"></i>No hay recomendaciones disponibles
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = recomendaciones.map(rec => `
+                <div class="flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <i class="${rec.icono} text-green-500 mt-1 mr-3"></i>
+                    <div>
+                        <h4 class="font-semibold text-green-800">${rec.titulo}</h4>
+                        <p class="text-sm text-green-700 mt-1">${rec.mensaje}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

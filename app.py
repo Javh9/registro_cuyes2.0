@@ -566,6 +566,56 @@ def api_balance_historico():
     except Exception as e:
         print(f"Error API histórico balance: {e}")
         return jsonify([])
-    
+
+
+# Agregar estas rutas al app.py existente
+
+@app.route('/predicciones')
+def predicciones():
+    return render_template('predicciones.html')
+
+@app.route('/api/predicciones/partos')
+def api_predicciones_partos():
+    try:
+        from models.predicciones import Predicciones
+        predicciones_model = Predicciones()
+        partos_proximos = predicciones_model.predecir_partos_proximos(dias=30)
+        return jsonify(partos_proximos)
+    except Exception as e:
+        print(f"Error API predicciones partos: {e}")
+        return jsonify([])
+
+@app.route('/api/predicciones/ventas')
+def api_predicciones_ventas():
+    try:
+        from models.predicciones import Predicciones
+        predicciones_model = Predicciones()
+        prediccion_ventas = predicciones_model.predecir_ventas_mes()
+        return jsonify(prediccion_ventas)
+    except Exception as e:
+        print(f"Error API predicciones ventas: {e}")
+        return jsonify({})
+
+@app.route('/api/predicciones/alertas')
+def api_predicciones_alertas():
+    try:
+        from models.predicciones import Predicciones
+        predicciones_model = Predicciones()
+        alertas = predicciones_model.generar_alertas_inteligentes()
+        return jsonify(alertas)
+    except Exception as e:
+        print(f"Error API alertas: {e}")
+        return jsonify([])
+
+@app.route('/api/predicciones/recomendaciones')
+def api_predicciones_recomendaciones():
+    try:
+        from models.predicciones import Predicciones
+        predicciones_model = Predicciones()
+        recomendaciones = predicciones_model.obtener_recomendaciones()
+        return jsonify(recomendaciones)
+    except Exception as e:
+        print(f"Error API recomendaciones: {e}")
+        return jsonify([])
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
