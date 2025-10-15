@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Granja de Cuyes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-indigo-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-clipboard-list mr-2"></i>Inventario Automático
+            </h1>
+            <a href="/" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container mx-auto p-6">
+        <!-- Alertas -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Resumen del Inventario -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    <i class="fas fa-boxes mr-2"></i>Inventario Actual
+                </h2>
+                <div class="text-sm text-gray-500" id="fechaActualizacion">
+                    Actualizando...
+                </div>
+            </div>
+
+            <!-- Métricas Principales -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-800" id="totalAnimales">0</div>
+                    <div class="text-sm text-blue-600">Total Animales</div>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-green-800" id="valorInventario">S/ 0.00</div>
+                    <div class="text-sm text-green-600">Valor Estimado</div>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-800" id="ultimaActualizacion">-</div>
+                    <div class="text-sm text-purple-600">Última Actualización</div>
+                </div>
+            </div>
+
+            <!-- Detalle por Categorías -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Tarjetas de Categorías -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Distribución por Categorías</h3>
+                    
+                    <!-- Reproductores -->
+                    <div class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-blue-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-venus-mars"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-blue-800">Reproductores</div>
+                                <div class="text-sm text-blue-600">Animales en reproducción</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-blue-800" id="cantReproductores">0</div>
+                    </div>
+
+                    <!-- Lactantes -->
+                    <div class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-green-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-baby"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-green-800">Lactantes</div>
+                                <div class="text-sm text-green-600">Crías en lactancia (0-21 días)</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-green-800" id="cantLactantes">0</div>
+                    </div>
+
+                    <!-- Destete -->
+                    <div class="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-baby-carriage"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-yellow-800">Destete</div>
+                                <div class="text-sm text-yellow-600">Animales recién destetados</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-yellow-800" id="cantDestete">0</div>
+                    </div>
+
+                    <!-- Engorde por Destete -->
+                    <div class="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-red-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-weight-scale"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-red-800">Engorde por Destete</div>
+                                <div class="text-sm text-red-600">Animales en crecimiento</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-red-800" id="cantEngordeDestete">0</div>
+                    </div>
+
+                    <!-- Engorde por Descarte -->
+                    <div class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-purple-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-recycle"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-purple-800">Engorde por Descarte</div>
+                                <div class="text-sm text-purple-600">Reproductores descartados</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-purple-800" id="cantEngordeDescarte">0</div>
+                    </div>
+
+                    <!-- Reemplazo -->
+                    <div class="flex items-center justify-between p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-cyan-500 text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-cyan-800">Reemplazo</div>
+                                <div class="text-sm text-cyan-600">Animales para renovación</div>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-cyan-800" id="cantReemplazo">0</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="space-y-6">
+                    <!-- Gráfico de Distribución -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Distribución del Inventario</h3>
+                        <div class="h-64">
+                            <canvas id="distribucionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Evolución -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Evolución de Nacimientos</h3>
+                        <div class="h-64">
+                            <canvas id="evolucionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movimientos Recientes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-exchange-alt mr-2"></i>Movimientos Recientes
+            </h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3">Fecha</th>
+                            <th class="px-4 py-3">Tipo</th>
+                            <th class="px-4 py-3">Descripción</th>
+                            <th class="px-4 py-3">Cantidad</th>
+                            <th class="px-4 py-3">Ubicación/Cliente</th>
+                            <th class="px-4 py-3">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaMovimientos">
+                        <tr>
+                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                                Cargando movimientos...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                <div>
+                    <h3 class="font-semibold text-blue-800">Sistema de Inventario Automático</h3>
+                    <p class="text-blue-700 text-sm mt-1">
+                        • El inventario se calcula automáticamente basado en todos los registros del sistema<br>
+                        • Se actualiza en tiempo real con cada operación registrada<br>
+                        • Incluye partos, destetes, mortalidad y ventas<br>
+                        • El valor estimado se calcula con precios promedio del mercado
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let distribucionChart, evolucionChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarInventario();
+            setInterval(cargarInventario, 60000); // Actualizar cada minuto
+        });
+
+        function cargarInventario() {
+            // Cargar inventario actual
+            fetch('/api/inventario/actual')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarInventario(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando inventario:', error);
+                });
+
+            // Cargar movimientos
+            fetch('/api/inventario/movimientos')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarMovimientos(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando movimientos:', error);
+                });
+
+            // Cargar estadísticas para gráficos
+            fetch('/api/inventario/estadisticas')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarGraficos(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando estadísticas:', error);
+                });
+        }
+
+        function actualizarInventario(data) {
+            document.getElementById('totalAnimales').textContent = data.total_general;
+            document.getElementById('valorInventario').textContent = `S/ ${data.valor_estimado.toFixed(2)}`;
+            document.getElementById('ultimaActualizacion').textContent = data.fecha_calculo;
+            document.getElementById('fechaActualizacion').textContent = `Actualizado: ${data.fecha_calculo}`;
+
+            document.getElementById('cantReproductores').textContent = data.reproductores;
+            document.getElementById('cantLactantes').textContent = data.lactantes;
+            document.getElementById('cantDestete').textContent = data.destete;
+            document.getElementById('cantEngordeDestete').textContent = data.engorde_destete;
+            document.getElementById('cantEngordeDescarte').textContent = data.engorde_descarte;
+            document.getElementById('cantReemplazo').textContent = data.reemplazo;
+        }
+
+        function actualizarMovimientos(movimientos) {
+            const tbody = document.getElementById('tablaMovimientos');
+            
+            if (movimientos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                            No hay movimientos recientes
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = movimientos.map(mov => {
+                // Determinar color y icono según el tipo
+                let tipoColor = '';
+                let tipoIcono = '';
+                let cantidadColor = '';
+                
+                switch(mov.tipo) {
+                    case 'parto':
+                        tipoColor = 'bg-green-100 text-green-800';
+                        tipoIcono = 'fas fa-baby';
+                        cantidadColor = 'text-green-600';
+                        break;
+                    case 'destete':
+                        tipoColor = 'bg-blue-100 text-blue-800';
+                        tipoIcono = 'fas fa-baby-carriage';
+                        cantidadColor = 'text-blue-600';
+                        break;
+                    case 'mortalidad':
+                        tipoColor = 'bg-red-100 text-red-800';
+                        tipoIcono = 'fas fa-heart-crack';
+                        cantidadColor = 'text-red-600';
+                        break;
+                    case 'venta':
+                        tipoColor = 'bg-yellow-100 text-yellow-800';
+                        tipoIcono = 'fas fa-dollar-sign';
+                        cantidadColor = 'text-yellow-600';
+                        break;
+                    default:
+                        tipoColor = 'bg-gray-100 text-gray-800';
+                        tipoIcono = 'fas fa-exchange-alt';
+                        cantidadColor = 'text-gray-600';
+                }
+
+                // Formatear cantidad (positiva/negativa)
+                const cantidadFormateada = mov.cantidad > 0 ? `+${mov.cantidad}` : mov.cantidad;
+                
+                // Formatear total si existe
+                const totalFormateado = mov.total ? `S/ ${mov.total.toFixed(2)}` : '-';
+
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3">${mov.fecha}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full ${tipoColor}">
+                                <i class="${tipoIcono} mr-1"></i>${mov.tipo.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">${mov.descripcion}</td>
+                        <td class="px-4 py-3 font-medium ${cantidadColor}">${cantidadFormateada}</td>
+                        <td class="px-4 py-3">${mov.ubicacion}</td>
+                        <td class="px-4 py-3 font-semibold">${totalFormateado}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function actualizarGraficos(data) {
+            // Gráfico de distribución
+            const ctxDistribucion = document.getElementById('distribucionChart').getContext('2d');
+            
+            if (distribucionChart) {
+                distribucionChart.destroy();
+            }
+
+            distribucionChart = new Chart(ctxDistribucion, {
+                type: 'doughnut',
+                data: {
+                    labels: data.distribucion?.labels || [],
+                    datasets: [{
+                        data: data.distribucion?.data || [],
+                        backgroundColor: data.distribucion?.colors || [],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de evolución
+            const ctxEvolucion = document.getElementById('evolucionChart').getContext('2d');
+            const meses = data.evolucion?.map(item => item.mes) || [];
+            const nacimientos = data.evolucion?.map(item => item.nacimientos) || [];
+
+            if (evolucionChart) {
+                evolucionChart.destroy();
+            }
+
+            evolucionChart = new Chart(ctxEvolucion, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Nacimientos Mensuales',
+                        data: nacimientos,
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

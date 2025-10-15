@@ -37,9 +37,103 @@ def mortalidad_lactancia():
     galpones = galpon_model.obtener_todos()
     return render_template('mortalidad_lactancia.html', galpones=galpones)
 
+# Agregar estas rutas al app.py existente
+
 @app.route('/ventas')
 def ventas():
     return render_template('ventas.html')
+
+@app.route('/registrar_venta', methods=['POST'])
+def registrar_venta():
+    try:
+        from models.venta import Venta
+        venta_model = Venta()
+        
+        datos = {
+            'fecha_venta': request.form['fecha_venta'],
+            'cliente': request.form['cliente'],
+            'tipo_producto': request.form['tipo_producto'],
+            'cantidad': int(request.form['cantidad']),
+            'precio_unitario': float(request.form['precio_unitario']),
+            'total': float(request.form['total']),
+            'observaciones': request.form.get('observaciones', '')
+        }
+        
+        venta_id = venta_model.registrar(datos)
+        if venta_id:
+            flash('Venta registrada exitosamente!', 'success')
+            return redirect(url_for('ventas'))
+        else:
+            flash('Error al registrar la venta', 'error')
+            return redirect(url_for('ventas'))
+            
+    except Exception as e:
+        print(f"Error registrando venta: {e}")
+        flash('Error al registrar la venta', 'error')
+        return redirect(url_for('ventas'))
+
+@app.route('/api/ventas/estadisticas')
+def api_estadisticas_ventas():
+    try:
+        from models.venta import Venta
+        venta_model = Venta()
+        
+        total_ventas_mes = venta_model.obtener_total_ventas_mes()
+        ventas_recientes = venta_model.obtener_ventas_recientes()
+        
+        # Calcular estadísticas
+        total_ventas = len(ventas_recientes)
+        
+        # Obtener clientes únicos de manera segura
+        clientes_unicos = set()
+        for venta in ventas_recientes:
+            if len(venta) > 2 and venta[2]:  # Verificar que existe el campo cliente
+                clientes_unicos.add(venta[2])
+        
+        promedio_venta = total_ventas_mes / total_ventas if total_ventas > 0 else 0
+        
+        return jsonify({
+            'ventas_mes': total_ventas_mes,
+            'total_ventas': total_ventas,
+            'promedio_venta': promedio_venta,
+            'total_clientes': len(clientes_unicos)
+        })
+    except Exception as e:
+        print(f"Error API estadísticas ventas: {e}")
+        return jsonify({
+            'ventas_mes': 0,
+            'total_ventas': 0,
+            'promedio_venta': 0,
+            'total_clientes': 0
+        })
+
+@app.route('/api/ventas/recientes')
+def api_ventas_recientes():
+    try:
+        from models.venta import Venta
+        venta_model = Venta()
+        ventas = venta_model.obtener_ventas_recientes()
+        
+        ventas_data = []
+        for venta in ventas:
+            ventas_data.append({
+                'id': venta[0],
+                'fecha_venta': venta[1].isoformat() if hasattr(venta[1], 'isoformat') else str(venta[1]),
+                'cliente': venta[2] if len(venta) > 2 else '',
+                'tipo_producto': venta[3] if len(venta) > 3 else '',
+                'cantidad': venta[4] if len(venta) > 4 else 0,
+                'precio_unitario': float(venta[5]) if len(venta) > 5 and venta[5] else 0.0,
+                'total': float(venta[6]) if len(venta) > 6 and venta[6] else 0.0,
+                'observaciones': venta[7] if len(venta) > 7 else ''
+            })
+        
+        return jsonify(ventas_data)
+    except Exception as e:
+        print(f"Error API ventas recientes: {e}")
+        return jsonify([])
+    
+
+
 
 @app.route('/galpones')
 def galpones():
@@ -109,6 +203,53 @@ def api_sugerir_parto(poza_id):
     except Exception as e:
         print(f"Error API sugerir parto: {e}")
         return jsonify({'siguiente_parto': 1})
+
+# Agregar estas rutas al app.py existente
+
+@app.route('/api/dashboard/tendencias')
+def api_tendencias_dashboard():
+    try:
+        from models.dashboard import Dashboard
+        dashboard_model = Dashboard()
+        tendencias = dashboard_model.obtener_tendencias_mensuales()
+        return jsonify(tendencias)
+    except Exception as e:
+        print(f"Error API tendencias dashboard: {e}")
+        return jsonify({})
+# Agregar estas rutas al app.py existente
+
+@app.route('/api/inventario/actual')
+def api_inventario_actual():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        inventario = inventario_model.calcular_inventario_actual()
+        return jsonify(inventario)
+    except Exception as e:
+        print(f"Error API inventario actual: {e}")
+        return jsonify({})
+
+@app.route('/api/inventario/movimientos')
+def api_inventario_movimientos():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        movimientos = inventario_model.obtener_movimientos_recientes()
+        return jsonify(movimientos)
+    except Exception as e:
+        print(f"Error API movimientos inventario: {e}")
+        return jsonify([])
+
+@app.route('/api/inventario/estadisticas')
+def api_inventario_estadisticas():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        estadisticas = inventario_model.obtener_estadisticas_inventario()
+        return jsonify(estadisticas)
+    except Exception as e:
+        print(f"Error API estadísticas inventario: {e}")
+        return jsonify({})
 
 # ✅ RUTAS DE REGISTRO
 @app.route('/registrar_parto', methods=['POST'])
@@ -383,5 +524,48 @@ def api_estadisticas_dashboard():
         print(f"Error API dashboard: {e}")
         return jsonify({})
 
+# Agregar estas rutas al app.py existente
+
+@app.route('/balance')
+def balance():
+    return render_template('balance.html')
+
+@app.route('/api/balance/mensual')
+def api_balance_mensual():
+    try:
+        from models.balance import Balance
+        balance_model = Balance()
+        
+        año = request.args.get('ano', type=int)
+        mes = request.args.get('mes', type=int)
+        
+        balance = balance_model.obtener_balance_mensual(año, mes)
+        return jsonify(balance)
+    except Exception as e:
+        print(f"Error API balance mensual: {e}")
+        return jsonify({})
+
+@app.route('/api/balance/metricas')
+def api_balance_metricas():
+    try:
+        from models.balance import Balance
+        balance_model = Balance()
+        metricas = balance_model.obtener_metricas_rentabilidad()
+        return jsonify(metricas)
+    except Exception as e:
+        print(f"Error API métricas balance: {e}")
+        return jsonify({})
+
+@app.route('/api/balance/historico')
+def api_balance_historico():
+    try:
+        from models.balance import Balance
+        balance_model = Balance()
+        historico = balance_model.obtener_historico_mensual(meses=6)
+        return jsonify(historico)
+    except Exception as e:
+        print(f"Error API histórico balance: {e}")
+        return jsonify([])
+    
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

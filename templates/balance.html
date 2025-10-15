@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Financiero - Granja de Cuyes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-purple-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">
+                <i class="fas fa-chart-bar mr-2"></i>Balance Financiero
+            </h1>
+            <a href="/" class="bg-purple-700 hover:bg-purple-800 px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container mx-auto p-6">
+        <!-- Selector de Mes -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-calendar-alt mr-2"></i>Seleccionar Período
+                </h2>
+                <div class="flex space-x-4">
+                    <select id="selectAnio" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                    <select id="selectMes" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                    <button onclick="cargarBalance()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas Principales -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Total Ventas -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Ventas</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalVentas">S/ 0.00</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-green-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2" id="periodoVentas">Mes actual</p>
+            </div>
+
+            <!-- Total Gastos -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Gastos</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalGastos">S/ 0.00</p>
+                    </div>
+                    <i class="fas fa-money-bill-wave text-red-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2" id="periodoGastos">Mes actual</p>
+            </div>
+
+            <!-- Resultado -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Resultado</p>
+                        <p class="text-2xl font-bold text-gray-800" id="resultado">S/ 0.00</p>
+                    </div>
+                    <i class="fas fa-calculator text-blue-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Utilidad/Pérdida</p>
+            </div>
+
+            <!-- Margen -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Margen</p>
+                        <p class="text-2xl font-bold text-gray-800" id="margen">0%</p>
+                    </div>
+                    <i class="fas fa-percentage text-yellow-500 text-2xl"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Porcentaje de ganancia</p>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Distribución de Gastos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-chart-pie mr-2"></i>Distribución de Gastos
+                </h3>
+                <div class="h-64">
+                    <canvas id="gastosChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Distribución de Ventas -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-chart-bar mr-2"></i>Distribución de Ventas
+                </h3>
+                <div class="h-64">
+                    <canvas id="ventasChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalle de Gastos y Ventas -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Detalle de Gastos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-receipt mr-2"></i>Detalle de Gastos por Tipo
+                </h3>
+                <div class="space-y-3" id="detalleGastos">
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Cargando...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Ventas -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-shopping-cart mr-2"></i>Detalle de Ventas por Tipo
+                </h3>
+                <div class="space-y-3" id="detalleVentas">
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Cargando...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas de Rentabilidad -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                <i class="fas fa-trophy mr-2"></i>Métricas de Rentabilidad (Últimos 12 Meses)
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="metricasRentabilidad">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-800" id="ventasAnuales">S/ 0</div>
+                    <div class="text-sm text-green-600">Ventas Anuales</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-800" id="costoAnimal">S/ 0.00</div>
+                    <div class="text-sm text-blue-600">Costo por Animal</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-800" id="precioPromedio">S/ 0.00</div>
+                    <div class="text-sm text-purple-600">Precio Promedio</div>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-800" id="margenAnual">0%</div>
+                    <div class="text-sm text-yellow-600">Margen Anual</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico Mensual -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                <i class="fas fa-history mr-2"></i>Histórico de los Últimos 6 Meses
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3">Período</th>
+                            <th class="px-4 py-3">Ventas</th>
+                            <th class="px-4 py-3">Gastos</th>
+                            <th class="px-4 py-3">Resultado</th>
+                            <th class="px-4 py-3">Margen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHistorico">
+                        <tr>
+                            <td colspan="5" class="px-4 py-4 text-center text-gray-500">
+                                Cargando histórico...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let gastosChart, ventasChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarSelectores();
+            cargarBalance();
+            cargarMetricasRentabilidad();
+            cargarHistorico();
+        });
+
+        function inicializarSelectores() {
+            // Llenar selector de años (últimos 3 años)
+            const selectAnio = document.getElementById('selectAnio');
+            const añoActual = new Date().getFullYear();
+            
+            for (let i = añoActual - 2; i <= añoActual; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                if (i === añoActual) option.selected = true;
+                selectAnio.appendChild(option);
+            }
+
+            // Establecer mes actual
+            const mesActual = new Date().getMonth() + 1;
+            document.getElementById('selectMes').value = mesActual;
+        }
+
+        function cargarBalance() {
+            const año = document.getElementById('selectAnio').value;
+            const mes = document.getElementById('selectMes').value;
+
+            fetch(`/api/balance/mensual?ano=${año}&mes=${mes}`)
+                .then(response => response.json())
+                .then(data => {
+                    actualizarBalance(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando balance:', error);
+                });
+        }
+
+        function cargarMetricasRentabilidad() {
+            fetch('/api/balance/metricas')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarMetricasRentabilidad(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando métricas:', error);
+                });
+        }
+
+        function cargarHistorico() {
+            fetch('/api/balance/historico')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarHistorico(data);
+                })
+                .catch(error => {
+                    console.error('Error cargando histórico:', error);
+                });
+        }
+
+        function actualizarBalance(data) {
+            // Actualizar métricas principales
+            document.getElementById('totalVentas').textContent = `S/ ${data.total_ventas.toFixed(2)}`;
+            document.getElementById('totalGastos').textContent = `S/ ${data.total_gastos.toFixed(2)}`;
+            document.getElementById('resultado').textContent = `S/ ${data.resultado.toFixed(2)}`;
+            document.getElementById('margen').textContent = `${data.margen_porcentaje.toFixed(1)}%`;
+
+            // Color del resultado
+            const resultadoElement = document.getElementById('resultado');
+            if (data.resultado >= 0) {
+                resultadoElement.classList.remove('text-red-800');
+                resultadoElement.classList.add('text-green-800');
+            } else {
+                resultadoElement.classList.remove('text-green-800');
+                resultadoElement.classList.add('text-red-800');
+            }
+
+            // Actualizar detalle de gastos
+            actualizarDetalleGastos(data.gastos_por_tipo);
+            
+            // Actualizar detalle de ventas
+            actualizarDetalleVentas(data.ventas_por_tipo);
+            
+            // Actualizar gráficos
+            actualizarGraficos(data);
+        }
+
+        function actualizarDetalleGastos(gastos) {
+            const container = document.getElementById('detalleGastos');
+            
+            if (gastos.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500">No hay gastos registrados</div>';
+                return;
+            }
+
+            container.innerHTML = gastos.map(gasto => {
+                const tipoDisplay = {
+                    'alimentacion': 'Alimentación',
+                    'medicamentos': 'Medicamentos',
+                    'mantenimiento': 'Mantenimiento',
+                    'mano_obra': 'Mano de Obra',
+                    'otros': 'Otros'
+                }[gasto.tipo] || gasto.tipo;
+
+                return `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-800">${tipoDisplay}</div>
+                            <div class="text-sm text-gray-600">${gasto.porcentaje.toFixed(1)}% del total</div>
+                        </div>
+                        <div class="text-lg font-semibold text-red-600">S/ ${gasto.total.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarDetalleVentas(ventas) {
+            const container = document.getElementById('detalleVentas');
+            
+            if (ventas.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500">No hay ventas registradas</div>';
+                return;
+            }
+
+            container.innerHTML = ventas.map(venta => {
+                const tipoDisplay = {
+                    'engorde_destete': 'Engorde Destete',
+                    'engorde_descarte': 'Engorde Descarte',
+                    'destete_directo': 'Destete Directo',
+                    'reproductor': 'Reproductor'
+                }[venta.tipo_producto] || venta.tipo_producto;
+
+                return `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-800">${tipoDisplay}</div>
+                            <div class="text-sm text-gray-600">${venta.total_cantidad} animales • ${venta.porcentaje.toFixed(1)}%</div>
+                        </div>
+                        <div class="text-lg font-semibold text-green-600">S/ ${venta.total_ventas.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarGraficos(data) {
+            // Gráfico de gastos
+            const ctxGastos = document.getElementById('gastosChart').getContext('2d');
+            if (gastosChart) gastosChart.destroy();
+
+            gastosChart = new Chart(ctxGastos, {
+                type: 'doughnut',
+                data: {
+                    labels: data.gastos_por_tipo.map(g => {
+                        const tipos = {
+                            'alimentacion': 'Alimentación',
+                            'medicamentos': 'Medicamentos',
+                            'mantenimiento': 'Mantenimiento',
+                            'mano_obra': 'Mano de Obra',
+                            'otros': 'Otros'
+                        };
+                        return tipos[g.tipo] || g.tipo;
+                    }),
+                    datasets: [{
+                        data: data.gastos_por_tipo.map(g => g.total),
+                        backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Gráfico de ventas
+            const ctxVentas = document.getElementById('ventasChart').getContext('2d');
+            if (ventasChart) ventasChart.destroy();
+
+            ventasChart = new Chart(ctxVentas, {
+                type: 'bar',
+                data: {
+                    labels: data.ventas_por_tipo.map(v => {
+                        const tipos = {
+                            'engorde_destete': 'Engorde Destete',
+                            'engorde_descarte': 'Engorde Descarte',
+                            'destete_directo': 'Destete Directo',
+                            'reproductor': 'Reproductor'
+                        };
+                        return tipos[v.tipo_producto] || v.tipo_producto;
+                    }),
+                    datasets: [{
+                        label: 'Ventas (S/)',
+                        data: data.ventas_por_tipo.map(v => v.total_ventas),
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarMetricasRentabilidad(data) {
+            document.getElementById('ventasAnuales').textContent = `S/ ${data.ventas_12_meses.toFixed(2)}`;
+            document.getElementById('costoAnimal').textContent = `S/ ${data.costo_por_animal.toFixed(2)}`;
+            document.getElementById('precioPromedio').textContent = `S/ ${data.precio_promedio_venta.toFixed(2)}`;
+            document.getElementById('margenAnual').textContent = `${data.margen_anual.toFixed(1)}%`;
+        }
+
+        function actualizarHistorico(historico) {
+            const tbody = document.getElementById('tablaHistorico');
+            
+            if (historico.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No hay datos históricos</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = historico.map(item => {
+                const nombreMes = [
+                    'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+                ][item.mes - 1];
+                
+                const resultadoColor = item.resultado >= 0 ? 'text-green-600' : 'text-red-600';
+                const margenColor = item.margen_porcentaje >= 0 ? 'text-green-600' : 'text-red-600';
+
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium">${nombreMes}/${item.año}</td>
+                        <td class="px-4 py-3">S/ ${item.total_ventas.toFixed(2)}</td>
+                        <td class="px-4 py-3">S/ ${item.total_gastos.toFixed(2)}</td>
+                        <td class="px-4 py-3 font-semibold ${resultadoColor}">S/ ${item.resultado.toFixed(2)}</td>
+                        <td class="px-4 py-3 font-semibold ${margenColor}">${item.margen_porcentaje.toFixed(1)}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
