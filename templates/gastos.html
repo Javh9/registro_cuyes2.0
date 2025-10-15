@@ -59,11 +59,12 @@
                         <select name="tipo" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">Seleccionar Tipo</option>
-                            <option value="alimentacion">Alimentación</option>
-                            <option value="medicamentos">Medicamentos</option>
-                            <option value="mantenimiento">Mantenimiento</option>
-                            <option value="mano_obra">Mano de Obra</option>
-                            <option value="otros">Otros</option>
+                            <option value="alimentacion">🍽️ Alimentación</option>
+                            <option value="medicamentos">💊 Medicamentos</option>
+                            <option value="mantenimiento">🔧 Mantenimiento</option>
+                            <option value="mano_obra">👷 Mano de Obra</option>
+                            <option value="transporte">🚚 Transporte</option>
+                            <option value="otros">📦 Otros</option>
                         </select>
                     </div>
 
@@ -119,7 +120,7 @@
         </div>
 
         <!-- Resumen de Gastos -->
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-green-500">
                 <div class="flex items-center">
                     <i class="fas fa-utensils text-green-500 text-xl mr-3"></i>
@@ -160,6 +161,16 @@
                 </div>
             </div>
 
+            <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-orange-500">
+                <div class="flex items-center">
+                    <i class="fas fa-truck text-orange-500 text-xl mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Transporte</p>
+                        <p class="text-lg font-semibold" id="totalTransporte">S/ 0.00</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-gray-500">
                 <div class="flex items-center">
                     <i class="fas fa-cube text-gray-500 text-xl mr-3"></i>
@@ -167,6 +178,19 @@
                         <p class="text-sm text-gray-600">Otros</p>
                         <p class="text-lg font-semibold" id="totalOtros">S/ 0.00</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos Recientes -->
+        <div id="gastosRecientes" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-history mr-2"></i>Gastos Recientes
+            </h2>
+            <div id="listaGastos" class="overflow-x-auto">
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>Cargando gastos recientes...</p>
                 </div>
             </div>
         </div>
@@ -196,19 +220,124 @@
 
             // Cargar resumen de gastos
             cargarResumenGastos();
+            cargarGastosRecientes();
         });
 
         function cargarResumenGastos() {
-            // En una implementación real, aquí harías una llamada API
-            // para obtener los totales por categoría del mes actual
-            console.log('Cargando resumen de gastos...');
-            
-            // Por ahora, establecer valores en 0
-            document.getElementById('totalAlimentacion').textContent = 'S/ 0.00';
-            document.getElementById('totalMedicamentos').textContent = 'S/ 0.00';
-            document.getElementById('totalMantenimiento').textContent = 'S/ 0.00';
-            document.getElementById('totalManoObra').textContent = 'S/ 0.00';
-            document.getElementById('totalOtros').textContent = 'S/ 0.00';
+            fetch('/api/gastos/resumen-mensual')
+                .then(response => response.json())
+                .then(resumen => {
+                    // Actualizar los totales por categoría
+                    document.getElementById('totalAlimentacion').textContent = 
+                        `S/ ${resumen.alimentacion?.toFixed(2) || '0.00'}`;
+                    document.getElementById('totalMedicamentos').textContent = 
+                        `S/ ${resumen.medicamentos?.toFixed(2) || '0.00'}`;
+                    document.getElementById('totalMantenimiento').textContent = 
+                        `S/ ${resumen.mantenimiento?.toFixed(2) || '0.00'}`;
+                    document.getElementById('totalManoObra').textContent = 
+                        `S/ ${resumen.mano_obra?.toFixed(2) || '0.00'}`;
+                    document.getElementById('totalTransporte').textContent = 
+                        `S/ ${resumen.transporte?.toFixed(2) || '0.00'}`;
+                    document.getElementById('totalOtros').textContent = 
+                        `S/ ${resumen.otros?.toFixed(2) || '0.00'}`;
+                })
+                .catch(error => {
+                    console.error('Error cargando resumen de gastos:', error);
+                    // Establecer valores en 0 en caso de error
+                    document.getElementById('totalAlimentacion').textContent = 'S/ 0.00';
+                    document.getElementById('totalMedicamentos').textContent = 'S/ 0.00';
+                    document.getElementById('totalMantenimiento').textContent = 'S/ 0.00';
+                    document.getElementById('totalManoObra').textContent = 'S/ 0.00';
+                    document.getElementById('totalTransporte').textContent = 'S/ 0.00';
+                    document.getElementById('totalOtros').textContent = 'S/ 0.00';
+                });
+        }
+
+        function cargarGastosRecientes() {
+            // Cargar datos de gastos recientes
+            fetch('/api/gastos/recientes')
+                .then(response => response.json())
+                .then(gastos => {
+                    const listaGastos = document.getElementById('listaGastos');
+                    
+                    if (gastos.length === 0) {
+                        listaGastos.innerHTML = `
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-inbox text-3xl mb-2"></i>
+                                <p>No hay gastos registrados</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = `
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                    `;
+
+                    gastos.forEach(gasto => {
+                        // Color según el tipo de gasto
+                        const colores = {
+                            'alimentacion': 'text-green-600 bg-green-50',
+                            'medicamentos': 'text-red-600 bg-red-50', 
+                            'mantenimiento': 'text-blue-600 bg-blue-50',
+                            'mano_obra': 'text-purple-600 bg-purple-50',
+                            'transporte': 'text-orange-600 bg-orange-50',
+                            'otros': 'text-gray-600 bg-gray-50'
+                        };
+
+                        html += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colores[gasto.tipo] || 'text-gray-600 bg-gray-50'}">
+                                        ${gasto.tipo_label}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                                    <div class="font-medium">${gasto.descripcion}</div>
+                                    ${gasto.observaciones !== '-' ? 
+                                        `<div class="text-xs text-gray-500 mt-1">${gasto.observaciones}</div>` : ''}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                    S/ ${gasto.monto.toFixed(2)}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    ${gasto.proveedor}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    listaGastos.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error cargando gastos recientes:', error);
+                    document.getElementById('listaGastos').innerHTML = `
+                        <div class="text-center text-red-500 py-8">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                            <p>Error cargando gastos recientes</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // Función para formatear montos en soles
+        function formatearSoles(monto) {
+            return new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN'
+            }).format(monto);
         }
     </script>
 </body>

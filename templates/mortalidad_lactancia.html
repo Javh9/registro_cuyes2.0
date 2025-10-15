@@ -35,7 +35,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Selecciona un galpón</option>
                     {% for galpon in galpones %}
-                    <option value="{{ galpon.id }}">{{ galpon.nombre }}</option>
+                    <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -97,7 +97,7 @@
                         class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center">
                     💔 Registrar Mortalidad
                 </button>
-                <a href="{{ url_for('dashboard') }}"
+                <a href="{{ url_for('index') }}"
                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 text-center">
                     ↩️ Volver al Dashboard
                 </a>
@@ -136,17 +136,15 @@ document.getElementById('galpon_id').addEventListener('change', function() {
     loadingDiv.classList.remove('hidden');
     pozaSelect.disabled = true;
     
-    fetch(`/api/galpones/${galponId}/pozas-lactancia`)
+    fetch(`/api/galpones/${galponId}/pozas_lactancia`)
         .then(response => response.json())
         .then(pozas => {
             pozaSelect.innerHTML = '<option value="">Selecciona una poza</option>';
             pozas.forEach(poza => {
                 const option = document.createElement('option');
                 option.value = poza.id;
-                 const indicador = poza.tiene_lactantes_reales ? ' 👶' : '';
-                 option.textContent = `${poza.nombre} - ${poza.tipo}${indicador}`;
+                option.textContent = `${poza.nombre} - ${poza.tipo}`;
                 pozaSelect.appendChild(option);
-                
             });
             pozaSelect.disabled = false;
             loadingDiv.classList.add('hidden');
@@ -170,7 +168,7 @@ document.getElementById('mortalidadForm').addEventListener('submit', function(e)
     submitBtn.innerHTML = '🔄 Registrando...';
     submitBtn.disabled = true;
     
-    fetch('/mortalidad-lactancia/registrar', {
+    fetch('/api/mortalidad_lactancia/registrar', {
         method: 'POST',
         body: formData
     })
@@ -219,7 +217,7 @@ function mostrarAlerta(mensaje, tipo) {
 }
 
 function cargarRegistrosRecientes() {
-    fetch('/api/mortalidad-lactancia/recientes')
+    fetch('/api/mortalidad_lactancia/recientes')
         .then(response => response.json())
         .then(registros => {
             const container = document.getElementById('registrosRecientes');
@@ -247,10 +245,10 @@ function cargarRegistrosRecientes() {
                 html += `
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.fecha}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.galpon_nombre} - Poza ${registro.poza_numero}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.galpon_nombre} - ${registro.poza_nombre}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.cantidad}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.causa_label}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">${registro.observaciones || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.causa}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${registro.observaciones}</td>
                     </tr>
                 `;
             });

@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS ventas (
 CREATE TABLE IF NOT EXISTS gastos (
     id SERIAL PRIMARY KEY,
     fecha DATE NOT NULL,
-    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('alimentacion', 'medicamentos', 'mantenimiento', 'mano_obra', 'otros')),
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('alimentacion', 'medicamentos', 'mantenimiento', 'mano_obra', 'transporte','otros')),
     descripcion VARCHAR(200) NOT NULL,
     monto DECIMAL(10,2) NOT NULL,
     proveedor VARCHAR(100),
