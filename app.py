@@ -33,10 +33,17 @@ def destetes():
 @app.route('/mortalidad_lactancia')
 def mortalidad_lactancia():
     from models.galpon import Galpon
+    from models.mortalidad_lactancia import MortalidadLactancia
+    
     galpon_model = Galpon()
+    mortalidad_model = MortalidadLactancia()
+    
     galpones = galpon_model.obtener_todos()
-    return render_template('mortalidad_lactancia.html', galpones=galpones)
-
+    causas = mortalidad_model.obtener_causas_mortalidad()
+    
+    return render_template('mortalidad_lactancia.html', 
+                         galpones=galpones, 
+                         causas=causas)
 # Agregar estas rutas al app.py existente
 
 @app.route('/ventas')
@@ -567,7 +574,64 @@ def api_balance_historico():
         print(f"Error API histórico balance: {e}")
         return jsonify([])
 
+@app.route('/api/mortalidad_lactancia/registrar', methods=['POST'])
+def api_registrar_mortalidad_lactancia():
+    try:
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        
+        # Validar datos requeridos
+        required_fields = ['galpon_id', 'poza_id', 'fecha', 'cantidad', 'causa']
+        for field in required_fields:
+            if not request.form.get(field):
+                return jsonify({'success': False, 'error': f'Campo {field} es requerido'})
+        
+        datos = {
+            'galpon_id': int(request.form['galpon_id']),
+            'poza_id': int(request.form['poza_id']),
+            'fecha': request.form['fecha'],
+            'cantidad': int(request.form['cantidad']),
+            'causa': request.form['causa'],
+            'observaciones': request.form.get('observaciones', '')
+        }
+        
+        mortalidad_id = mortalidad_model.registrar(datos)
+        if mortalidad_id:
+            return jsonify({
+                'success': True, 
+                'message': 'Mortalidad registrada exitosamente',
+                'id': mortalidad_id
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Error al guardar en base de datos'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/mortalidad_lactancia/recientes')
+def api_mortalidad_recientes():
+    try:
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        registros = mortalidad_model.obtener_recientes(10)
+        
+        registros_formateados = []
+        for registro in registros:
+            registros_formateados.append({
+                'id': registro[0],
+                'fecha': registro[1].strftime('%d/%m/%Y'),
+                'cantidad': registro[2],
+                'causa': registro[3],
+                'observaciones': registro[4] or '-',
+                'galpon_nombre': registro[5] or f'Galpón {registro[0]}',
+                'poza_nombre': registro[6] or f'Poza {registro[0]}'
+            })
+        
+        return jsonify(registros_formateados)
+        
+    except Exception as e:
+        print(f"Error API mortalidad recientes: {e}")
+        return jsonify([])
 # Agregar estas rutas al app.py existente
 
 @app.route('/predicciones')
