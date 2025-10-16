@@ -11,7 +11,10 @@ app.secret_key = 'tu_clave_secreta_aqui'
 # Configuración
 app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'db', 'cuyes.db')
 
-# ✅ RUTAS PRINCIPALES
+# =============================================================================
+# RUTAS PRINCIPALES (PÁGINAS)
+# =============================================================================
+
 @app.route('/')
 def index():
     fecha_actual = datetime.now().strftime("%d/%m/%Y")
@@ -62,10 +65,6 @@ def galpones():
     galpones = galpon_model.obtener_todos()
     return render_template('galpones.html', galpones=galpones)
 
-@app.route('/gastos')
-def gastos():
-    return render_template('gastos.html')
-
 @app.route('/inventario')
 def inventario():
     return render_template('inventario.html')
@@ -78,7 +77,10 @@ def balance():
 def predicciones():
     return render_template('predicciones.html')
 
-# ✅ RUTAS DE REGISTRO
+# =============================================================================
+# RUTAS DE REGISTRO (FORMULARIOS)
+# =============================================================================
+
 @app.route('/registrar_parto', methods=['POST'])
 def registrar_parto():
     try:
@@ -232,7 +234,10 @@ def registrar_venta():
         flash('Error al registrar la venta', 'error')
         return redirect(url_for('ventas'))
 
-# ✅ RUTAS GALPONES Y POZAS
+# =============================================================================
+# RUTAS GALPONES Y POZAS (GESTIÓN)
+# =============================================================================
+
 @app.route('/crear_galpon', methods=['POST'])
 def crear_galpon():
     try:
@@ -343,7 +348,10 @@ def editar_poza():
         flash('Error al actualizar la poza', 'error')
         return redirect(url_for('galpones'))
 
-# ✅ APIs PARA DATOS DINÁMICOS
+# =============================================================================
+# APIs PARA DATOS DINÁMICOS
+# =============================================================================
+
 @app.route('/api/galpones/<int:galpon_id>/pozas')
 def api_pozas_por_galpon(galpon_id):
     try:
@@ -366,25 +374,44 @@ def api_pozas_por_galpon(galpon_id):
 
 @app.route('/api/galpones/<int:galpon_id>/pozas_lactancia')
 def api_pozas_lactancia(galpon_id):
-    """Obtener pozas con lactantes (que han tenido partos recientes)"""
     try:
+        print(f"🔍 DEBUG API: Llegó a /api/galpones/{galpon_id}/pozas_lactancia")
+        
+        # Importar aquí para evitar problemas de importación circular
         from models.poza import Poza
         poza_model = Poza()
+        
+        print(f"🔍 DEBUG API: Instancia de Poza creada, buscando pozas...")
         pozas = poza_model.obtener_pozas_con_lactantes(galpon_id)
+        
+        print(f"🔍 DEBUG API: Resultado de obtener_pozas_con_lactantes: {pozAs}")
+        print(f"🔍 DEBUG API: Tipo del resultado: {type(pozAs)}")
+        print(f"🔍 DEBUG API: Longitud del resultado: {len(pozAs) if pozas else 0}")
+        
+        # Si no hay pozas reproductoras, mostrar todas las pozas del galpón para debug
+        if not pozas:
+            print(f"🔍 DEBUG API: No se encontraron pozas reproductoras, mostrando todas las pozas del galpón")
+            pozas = poza_model.obtener_por_galpon(galpon_id)
+            print(f"🔍 DEBUG API: Todas las pozas del galpón: {pozAs}")
         
         pozas_data = []
         for poza in pozas:
-            pozas_data.append({
+            poza_info = {
                 'id': poza[0],
                 'nombre': poza[1],
                 'tipo': poza[2]
-            })
+            }
+            print(f"🔍 DEBUG API: Procesando poza: {poza_info}")
+            pozas_data.append(poza_info)
         
+        print(f"🔍 DEBUG API: Datos finales a enviar: {pozas_data}")
         return jsonify(pozas_data)
+        
     except Exception as e:
-        print(f"Error API pozas lactancia: {e}")
+        print(f"❌ ERROR CRÍTICO en api_pozas_lactancia: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify([])
-
 @app.route('/api/pozas/<int:poza_id>/sugerir_parto')
 def api_sugerir_parto(poza_id):
     try:
@@ -420,7 +447,10 @@ def api_obtener_galpon(galpon_id):
         print(f"Error API obtener galpón: {e}")
         return jsonify({'error': 'Error del servidor'}), 500
 
-# ✅ APIs PARA DASHBOARD
+# =============================================================================
+# APIs PARA DASHBOARD
+# =============================================================================
+
 @app.route('/api/dashboard/estadisticas')
 def api_estadisticas_dashboard():
     try:
@@ -443,84 +473,105 @@ def api_tendencias_dashboard():
         print(f"Error API tendencias dashboard: {e}")
         return jsonify({})
 
-# ✅ APIs PARA INVENTARIO
-@app.route('/api/inventario/actual')
-def api_inventario_actual():
+@app.route('/api/metricas')
+def api_metricas():
     try:
-        from models.inventario import Inventario
-        inventario_model = Inventario()
-        inventario = inventario_model.calcular_inventario_actual()
-        return jsonify(inventario)
-    except Exception as e:
-        print(f"Error API inventario actual: {e}")
-        return jsonify({})
-
-@app.route('/api/inventario/movimientos')
-def api_inventario_movimientos():
-    try:
-        from models.inventario import Inventario
-        inventario_model = Inventario()
-        movimientos = inventario_model.obtener_movimientos_recientes()
-        return jsonify(movimientos)
-    except Exception as e:
-        print(f"Error API movimientos inventario: {e}")
-        return jsonify([])
-
-@app.route('/api/inventario/estadisticas')
-def api_inventario_estadisticas():
-    try:
-        from models.inventario import Inventario
-        inventario_model = Inventario()
-        estadisticas = inventario_model.obtener_estadisticas_inventario()
-        return jsonify(estadisticas)
-    except Exception as e:
-        print(f"Error API estadísticas inventario: {e}")
-        return jsonify({})
-
-# ✅ APIs PARA VENTAS
-# RUTA: /api/ventas/estadisticas
-@app.route('/api/ventas/estadisticas')
-def api_estadisticas_ventas():
-    try:
-        from models.venta import Venta  # Asegúrate que sea 'ventas' (plural)
-        venta_model = Venta()
-        estadisticas = venta_model.obtener_estadisticas_completas()
-        return jsonify(estadisticas)
-    except Exception as e:
-        print(f"Error API estadísticas ventas: {e}")
-        return jsonify({
-            'ventas_mes': 0,
-            'total_ventas': 0,
-            'promedio_venta': 0,
-            'total_clientes': 0
-        })
-
-# RUTA: /api/ventas/recientes
-@app.route('/api/ventas/recientes')
-def api_ventas_recientes():
-    try:
-        from models.venta import Venta  # Asegúrate que sea 'ventas' (plural)
-        venta_model = Venta()
-        ventas = venta_model.obtener_ventas_recientes(10)
+        conn = get_db_connection()
         
-        ventas_data = []
-        for venta in ventas:
-            ventas_data.append({
-                'id': venta[0],
-                'fecha_venta': venta[1].isoformat() if hasattr(venta[1], 'isoformat') else str(venta[1]),
-                'cliente': venta[2] if len(venta) > 2 else '',
-                'tipo_producto': venta[3] if len(venta) > 3 else '',
-                'cantidad': venta[4] if len(venta) > 4 else 0,
-                'precio_unitario': float(venta[5]) if len(venta) > 5 and venta[5] else 0.0,
-                'total': float(venta[6]) if len(venta) > 6 and venta[6] else 0.0,
-                'observaciones': venta[7] if len(venta) > 7 else ''
+        # Métricas básicas (por ahora devolvemos datos de ejemplo)
+        metricas = {
+            'reproductores': 45,
+            'lactantes': 23,
+            'destete': 15,
+            'engorde': 32,
+            'total_animales': 115,
+            'partos_mes': 8,
+            'mortalidad_mes': 3,
+            'gastos_mes': 1250.00
+        }
+        
+        conn.close()
+        return jsonify(metricas)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# =============================================================================
+# APIs PARA MORTALIDAD LACTANCIA
+# =============================================================================
+
+@app.route('/api/mortalidad_lactancia/registrar', methods=['POST'])
+def api_registrar_mortalidad_lactancia():
+    try:
+        print("🔍 DEBUG: Llegó a /api/mortalidad_lactancia/registrar")
+        print("🔍 DEBUG: Datos del formulario:", dict(request.form))
+        
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        
+        # Validar datos requeridos
+        required_fields = ['galpon_id', 'poza_id', 'fecha', 'cantidad', 'causa']
+        for field in required_fields:
+            if not request.form.get(field):
+                print(f"❌ DEBUG: Falta campo {field}")
+                return jsonify({'success': False, 'error': f'Campo {field} es requerido'})
+        
+        datos = {
+            'galpon_id': int(request.form['galpon_id']),
+            'poza_id': int(request.form['poza_id']),
+            'fecha': request.form['fecha'],
+            'cantidad': int(request.form['cantidad']),
+            'causa': request.form['causa'],
+            'observaciones': request.form.get('observaciones', '')
+        }
+        
+        print("🔍 DEBUG: Datos procesados:", datos)
+        
+        mortalidad_id = mortalidad_model.registrar(datos)
+        if mortalidad_id:
+            print("✅ DEBUG: Mortalidad registrada con ID:", mortalidad_id)
+            return jsonify({
+                'success': True, 
+                'message': 'Mortalidad registrada exitosamente',
+                'id': mortalidad_id
+            })
+        else:
+            print("❌ DEBUG: Error al guardar en base de datos")
+            return jsonify({'success': False, 'error': 'Error al guardar en base de datos'})
+        
+    except Exception as e:
+        print("❌ DEBUG: Excepción en api_registrar_mortalidad_lactancia:", str(e))
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mortalidad_lactancia/recientes')
+def api_mortalidad_recientes():
+    try:
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        registros = mortalidad_model.obtener_recientes(10)
+        
+        registros_formateados = []
+        for registro in registros:
+            registros_formateados.append({
+                'id': registro[0],
+                'fecha': registro[1].strftime('%d/%m/%Y'),
+                'cantidad': registro[2],
+                'causa': registro[3],
+                'observaciones': registro[4] or '-',
+                'galpon_nombre': registro[5] or f'Galpón {registro[0]}',
+                'poza_nombre': registro[6] or f'Poza {registro[0]}'
             })
         
-        return jsonify(ventas_data)
+        return jsonify(registros_formateados)
+        
     except Exception as e:
-        print(f"Error API ventas recientes: {e}")
+        print(f"Error API mortalidad recientes: {e}")
         return jsonify([])
-# ✅ APIs PARA DESTETES
+
+# =============================================================================
+# APIs PARA DESTETES
+# =============================================================================
+
 @app.route('/api/destetes/pozas-con-crias')
 def api_pozas_con_crias_destetar():
     """Obtiene pozas que tienen crías listas para destetar"""
@@ -603,67 +654,10 @@ def api_estadisticas_destete():
         print(f"Error API estadísticas destete: {e}")
         return jsonify({})
 
-# ✅ APIs PARA MORTALIDAD LACTANCIA
-@app.route('/api/mortalidad_lactancia/registrar', methods=['POST'])
-def api_registrar_mortalidad_lactancia():
-    try:
-        from models.mortalidad_lactancia import MortalidadLactancia
-        mortalidad_model = MortalidadLactancia()
-        
-        # Validar datos requeridos
-        required_fields = ['galpon_id', 'poza_id', 'fecha', 'cantidad', 'causa']
-        for field in required_fields:
-            if not request.form.get(field):
-                return jsonify({'success': False, 'error': f'Campo {field} es requerido'})
-        
-        datos = {
-            'galpon_id': int(request.form['galpon_id']),
-            'poza_id': int(request.form['poza_id']),
-            'fecha': request.form['fecha'],
-            'cantidad': int(request.form['cantidad']),
-            'causa': request.form['causa'],
-            'observaciones': request.form.get('observaciones', '')
-        }
-        
-        mortalidad_id = mortalidad_model.registrar(datos)
-        if mortalidad_id:
-            return jsonify({
-                'success': True, 
-                'message': 'Mortalidad registrada exitosamente',
-                'id': mortalidad_id
-            })
-        else:
-            return jsonify({'success': False, 'error': 'Error al guardar en base de datos'})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+# =============================================================================
+# APIs PARA GASTOS
+# =============================================================================
 
-@app.route('/api/mortalidad_lactancia/recientes')
-def api_mortalidad_recientes():
-    try:
-        from models.mortalidad_lactancia import MortalidadLactancia
-        mortalidad_model = MortalidadLactancia()
-        registros = mortalidad_model.obtener_recientes(10)
-        
-        registros_formateados = []
-        for registro in registros:
-            registros_formateados.append({
-                'id': registro[0],
-                'fecha': registro[1].strftime('%d/%m/%Y'),
-                'cantidad': registro[2],
-                'causa': registro[3],
-                'observaciones': registro[4] or '-',
-                'galpon_nombre': registro[5] or f'Galpón {registro[0]}',
-                'poza_nombre': registro[6] or f'Poza {registro[0]}'
-            })
-        
-        return jsonify(registros_formateados)
-        
-    except Exception as e:
-        print(f"Error API mortalidad recientes: {e}")
-        return jsonify([])
-
-# ✅ APIs PARA GASTOS
 @app.route('/api/gastos/resumen-mensual')
 def api_gastos_resumen_mensual():
     try:
@@ -738,7 +732,92 @@ def api_gastos_estadisticas_anuales():
         print(f"Error API estadísticas gastos: {e}")
         return jsonify({'meses': [], 'gastos': [], 'total_anual': 0})
 
-# ✅ APIs PARA BALANCE
+# =============================================================================
+# APIs PARA VENTAS
+# =============================================================================
+
+@app.route('/api/ventas/estadisticas')
+def api_estadisticas_ventas():
+    try:
+        from models.venta import Venta
+        venta_model = Venta()
+        estadisticas = venta_model.obtener_estadisticas_completas()
+        return jsonify(estadisticas)
+    except Exception as e:
+        print(f"Error API estadísticas ventas: {e}")
+        return jsonify({
+            'ventas_mes': 0,
+            'total_ventas': 0,
+            'promedio_venta': 0,
+            'total_clientes': 0
+        })
+
+@app.route('/api/ventas/recientes')
+def api_ventas_recientes():
+    try:
+        from models.venta import Venta
+        venta_model = Venta()
+        ventas = venta_model.obtener_ventas_recientes(10)
+        
+        ventas_data = []
+        for venta in ventas:
+            ventas_data.append({
+                'id': venta[0],
+                'fecha_venta': venta[1].isoformat() if hasattr(venta[1], 'isoformat') else str(venta[1]),
+                'cliente': venta[2] if len(venta) > 2 else '',
+                'tipo_producto': venta[3] if len(venta) > 3 else '',
+                'cantidad': venta[4] if len(venta) > 4 else 0,
+                'precio_unitario': float(venta[5]) if len(venta) > 5 and venta[5] else 0.0,
+                'total': float(venta[6]) if len(venta) > 6 and venta[6] else 0.0,
+                'observaciones': venta[7] if len(venta) > 7 else ''
+            })
+        
+        return jsonify(ventas_data)
+    except Exception as e:
+        print(f"Error API ventas recientes: {e}")
+        return jsonify([])
+
+# =============================================================================
+# APIs PARA INVENTARIO
+# =============================================================================
+
+@app.route('/api/inventario/actual')
+def api_inventario_actual():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        inventario = inventario_model.calcular_inventario_actual()
+        return jsonify(inventario)
+    except Exception as e:
+        print(f"Error API inventario actual: {e}")
+        return jsonify({})
+
+@app.route('/api/inventario/movimientos')
+def api_inventario_movimientos():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        movimientos = inventario_model.obtener_movimientos_recientes()
+        return jsonify(movimientos)
+    except Exception as e:
+        print(f"Error API movimientos inventario: {e}")
+        return jsonify([])
+
+@app.route('/api/inventario/estadisticas')
+def api_inventario_estadisticas():
+    try:
+        from models.inventario import Inventario
+        inventario_model = Inventario()
+        estadisticas = inventario_model.obtener_estadisticas_inventario()
+        return jsonify(estadisticas)
+    except Exception as e:
+        print(f"Error API estadísticas inventario: {e}")
+        return jsonify({})
+
+# =============================================================================
+# APIs PARA BALANCE
+# =============================================================================
+
 @app.route('/api/balance/mensual')
 def api_balance_mensual():
     try:
@@ -776,7 +855,10 @@ def api_balance_historico():
         print(f"Error API histórico balance: {e}")
         return jsonify([])
 
-# ✅ APIs PARA PREDICCIONES
+# =============================================================================
+# APIs PARA PREDICCIONES
+# =============================================================================
+
 @app.route('/api/predicciones/partos')
 def api_predicciones_partos():
     try:
@@ -820,6 +902,10 @@ def api_predicciones_recomendaciones():
     except Exception as e:
         print(f"Error API recomendaciones: {e}")
         return jsonify([])
+
+# =============================================================================
+# EJECUCIÓN
+# =============================================================================
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

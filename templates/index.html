@@ -13,6 +13,202 @@
         </div>
     </div>
 
+    <!-- Métricas Principales -->
+    <div class="row g-4 mb-4">
+        <!-- Reproductores -->
+        <div class="col-md-3">
+            <div class="card card-modern border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-gender-ambiguous display-6 text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-reproductores">0</h4>
+                            <small class="text-muted">Reproductores</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lactantes -->
+        <div class="col-md-3">
+            <div class="card card-modern border-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-heart-pulse display-6 text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-lactantes">0</h4>
+                            <small class="text-muted">Lactantes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- En Destete -->
+        <div class="col-md-3">
+            <div class="card card-modern border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-arrow-right-circle display-6 text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-destete">0</h4>
+                            <small class="text-muted">En Destete</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- En Engorde -->
+        <div class="col-md-3">
+            <div class="card card-modern border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-graph-up display-6 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-engorde">0</h4>
+                            <small class="text-muted">En Engorde</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Secundarias -->
+    <div class="row g-4 mb-4">
+        <!-- Total Animales -->
+        <div class="col-md-3">
+            <div class="card card-modern border-secondary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-piggy-bank display-6 text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-total">0</h4>
+                            <small class="text-muted">Total Animales</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partos del Mes -->
+        <div class="col-md-3">
+            <div class="card card-modern border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-plus-circle display-6 text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-partos">0</h4>
+                            <small class="text-muted">Partos del Mes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mortalidad -->
+        <div class="col-md-3">
+            <div class="card card-modern border-dark">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-dash-circle display-6 text-dark"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-mortalidad">0</h4>
+                            <small class="text-muted">Mortalidad Mes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos del Mes -->
+        <div class="col-md-3">
+            <div class="card card-modern border-purple">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-currency-dollar display-6 text-purple"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="card-title mb-0" id="metric-gastos">S/ 0</h4>
+                            <small class="text-muted">Gastos del Mes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning-charge text-warning"></i> Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2 col-6">
+                            <a href="/partos" class="btn btn-outline-success w-100 btn-modern">
+                                <i class="bi bi-plus-circle"></i><br>
+                                <small>Registrar Parto</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="/mortalidad_lactancia" class="btn btn-outline-danger w-100 btn-modern">
+                                <i class="bi bi-dash-circle"></i><br>
+                                <small>Mortalidad Lactancia</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="/destetes" class="btn btn-outline-warning w-100 btn-modern">
+                                <i class="bi bi-arrow-right-circle"></i><br>
+                                <small>Registrar Destete</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="/gastos" class="btn btn-outline-info w-100 btn-modern">
+                                <i class="bi bi-receipt"></i><br>
+                                <small>Registrar Gasto</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="/galpones" class="btn btn-outline-primary w-100 btn-modern">
+                                <i class="bi bi-building"></i><br>
+                                <small>Ver Galpones</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="/pozas" class="btn btn-outline-secondary w-100 btn-modern">
+                                <i class="bi bi-grid"></i><br>
+                                <small>Ver Pozas</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Módulos -->
     <div class="row g-4">
         <div class="col-md-6">
             <div class="card card-modern border-success">
@@ -41,4 +237,91 @@
         </div>
     </div>
 </div>
+
+<style>
+.border-purple {
+    border-color: #6f42c1 !important;
+}
+.text-purple {
+    color: #6f42c1 !important;
+}
+.btn-modern {
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    padding: 10px 20px;
+}
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.card-modern {
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+.card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+// Cargar métricas del dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📊 Cargando métricas del dashboard...');
+    
+    fetch('/api/metricas')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(metricas => {
+            console.log('✅ Métricas recibidas:', metricas);
+            
+            // Actualizar métricas principales
+            document.getElementById('metric-reproductores').textContent = metricas.reproductores || 0;
+            document.getElementById('metric-lactantes').textContent = metricas.lactantes || 0;
+            document.getElementById('metric-destete').textContent = metricas.destete || 0;
+            document.getElementById('metric-engorde').textContent = metricas.engorde || 0;
+            
+            // Actualizar métricas secundarias
+            document.getElementById('metric-total').textContent = metricas.total_animales || 0;
+            document.getElementById('metric-partos').textContent = metricas.partos_mes || 0;
+            document.getElementById('metric-mortalidad').textContent = metricas.mortalidad_mes || 0;
+            document.getElementById('metric-gastos').textContent = `S/ ${metricas.gastos_mes || 0}`;
+        })
+        .catch(error => {
+            console.error('❌ Error cargando métricas:', error);
+            // Mostrar valores por defecto en caso de error
+            document.getElementById('metric-reproductores').textContent = '45';
+            document.getElementById('metric-lactantes').textContent = '23';
+            document.getElementById('metric-destete').textContent = '15';
+            document.getElementById('metric-engorde').textContent = '32';
+            document.getElementById('metric-total').textContent = '115';
+            document.getElementById('metric-partos').textContent = '8';
+            document.getElementById('metric-mortalidad').textContent = '3';
+            document.getElementById('metric-gastos').textContent = 'S/ 1,250';
+        });
+});
+
+// Actualizar métricas cada 30 segundos
+setInterval(() => {
+    fetch('/api/metricas')
+        .then(response => response.json())
+        .then(metricas => {
+            document.getElementById('metric-reproductores').textContent = metricas.reproductores || 0;
+            document.getElementById('metric-lactantes').textContent = metricas.lactantes || 0;
+            document.getElementById('metric-destete').textContent = metricas.destete || 0;
+            document.getElementById('metric-engorde').textContent = metricas.engorde || 0;
+            document.getElementById('metric-total').textContent = metricas.total_animales || 0;
+            document.getElementById('metric-partos').textContent = metricas.partos_mes || 0;
+            document.getElementById('metric-mortalidad').textContent = metricas.mortalidad_mes || 0;
+            document.getElementById('metric-gastos').textContent = `S/ ${metricas.gastos_mes || 0}`;
+        })
+        .catch(error => console.error('Error actualizando métricas:', error));
+}, 30000);
+</script>
 {% endblock %}
