@@ -382,25 +382,35 @@ def api_pozas_lactancia(galpon_id):
         poza_model = Poza()
         
         print(f"🔍 DEBUG API: Instancia de Poza creada, buscando pozas...")
+        
+        # PRIMERO intentar con el método específico
         pozas = poza_model.obtener_pozas_con_lactantes(galpon_id)
         
-        print(f"🔍 DEBUG API: Resultado de obtener_pozas_con_lactantes: {pozAs}")
-        print(f"🔍 DEBUG API: Tipo del resultado: {type(pozAs)}")
-        print(f"🔍 DEBUG API: Longitud del resultado: {len(pozAs) if pozas else 0}")
+        print(f"🔍 DEBUG API: Resultado de obtener_pozas_con_lactantes: {pozas}")
+        print(f"🔍 DEBUG API: Tipo del resultado: {type(pozas)}")
         
-        # Si no hay pozas reproductoras, mostrar todas las pozas del galpón para debug
-        if not pozas:
-            print(f"🔍 DEBUG API: No se encontraron pozas reproductoras, mostrando todas las pozas del galpón")
+        # Si no funciona, usar el método general como fallback
+        if pozas is None or len(pozas) == 0:
+            print(f"🔍 DEBUG API: No se encontraron pozas con método específico, usando método general")
             pozas = poza_model.obtener_por_galpon(galpon_id)
-            print(f"🔍 DEBUG API: Todas las pozas del galpón: {pozAs}")
+            print(f"🔍 DEBUG API: Todas las pozas del galpón: {pozas}")
         
         pozas_data = []
         for poza in pozas:
-            poza_info = {
-                'id': poza[0],
-                'nombre': poza[1],
-                'tipo': poza[2]
-            }
+            # Manejar diferentes estructuras de datos
+            if isinstance(poza, (list, tuple)):
+                poza_info = {
+                    'id': poza[0],
+                    'nombre': poza[1],
+                    'tipo': poza[2] if len(poza) > 2 else 'desconocido'
+                }
+            else:
+                poza_info = {
+                    'id': poza.id if hasattr(poza, 'id') else poza.get('id'),
+                    'nombre': poza.nombre if hasattr(poza, 'nombre') else poza.get('nombre'),
+                    'tipo': poza.tipo if hasattr(poza, 'tipo') else poza.get('tipo', 'desconocido')
+                }
+            
             print(f"🔍 DEBUG API: Procesando poza: {poza_info}")
             pozas_data.append(poza_info)
         
@@ -412,6 +422,8 @@ def api_pozas_lactancia(galpon_id):
         import traceback
         traceback.print_exc()
         return jsonify([])
+
+
 @app.route('/api/pozas/<int:poza_id>/sugerir_parto')
 def api_sugerir_parto(poza_id):
     try:

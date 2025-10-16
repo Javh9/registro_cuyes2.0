@@ -136,23 +136,45 @@ document.getElementById('galpon_id').addEventListener('change', function() {
     loadingDiv.classList.remove('hidden');
     pozaSelect.disabled = true;
     
+    // 🔥 URL CORREGIDA - eliminé la "s" extra en "galpones"
     fetch(`/api/galpones/${galponId}/pozas_lactancia`)
-        .then(response => response.json())
+        .then(response => {
+            console.log('🔍 Response status:', response.status);
+            console.log('🔍 Response ok:', response.ok);
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(pozas => {
+            console.log('🔍 Pozas recibidas:', pozas);
+            
             pozaSelect.innerHTML = '<option value="">Selecciona una poza</option>';
-            pozas.forEach(poza => {
+            
+            if (pozas.length === 0) {
                 const option = document.createElement('option');
-                option.value = poza.id;
-                option.textContent = `${poza.nombre} - ${poza.tipo}`;
+                option.value = "";
+                option.textContent = "No hay pozas con lactantes en este galpón";
                 pozaSelect.appendChild(option);
-            });
+            } else {
+                pozas.forEach(poza => {
+                    const option = document.createElement('option');
+                    option.value = poza.id;
+                    option.textContent = `${poza.nombre} - ${poza.tipo}`;
+                    pozaSelect.appendChild(option);
+                });
+            }
+            
             pozaSelect.disabled = false;
             loadingDiv.classList.add('hidden');
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error cargando pozas:', error);
             pozaSelect.innerHTML = '<option value="">Error cargando pozas</option>';
             loadingDiv.classList.add('hidden');
+            
+            // Mostrar alerta de error
+            mostrarAlerta('❌ Error al cargar las pozas. Revisa la consola para más detalles.', 'error');
         });
 });
 
@@ -164,6 +186,17 @@ document.getElementById('mortalidadForm').addEventListener('submit', function(e)
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     
+    // Validar campos requeridos
+    const galponId = document.getElementById('galpon_id').value;
+    const pozaId = document.getElementById('poza_id').value;
+    const cantidad = document.getElementById('cantidad').value;
+    const causa = document.getElementById('causa').value;
+    
+    if (!galponId || !pozaId || !cantidad || !causa) {
+        mostrarAlerta('❌ Por favor completa todos los campos requeridos', 'error');
+        return;
+    }
+    
     // Mostrar loading
     submitBtn.innerHTML = '🔄 Registrando...';
     submitBtn.disabled = true;
@@ -174,17 +207,18 @@ document.getElementById('mortalidadForm').addEventListener('submit', function(e)
     })
     .then(response => response.json())
     .then(data => {
+        console.log('🔍 Respuesta del servidor:', data);
         if (data.success) {
-            mostrarAlerta('✅ Registro exitoso', 'success');
+            mostrarAlerta('✅ ' + data.message, 'success');
             this.reset();
             cargarRegistrosRecientes();
         } else {
-            mostrarAlerta('❌ Error: ' + data.error, 'error');
+            mostrarAlerta('❌ Error: ' + (data.error || 'Error desconocido'), 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        mostrarAlerta('❌ Error de conexión', 'error');
+        mostrarAlerta('❌ Error de conexión con el servidor', 'error');
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;
@@ -220,6 +254,7 @@ function cargarRegistrosRecientes() {
     fetch('/api/mortalidad_lactancia/recientes')
         .then(response => response.json())
         .then(registros => {
+            console.log('🔍 Registros recientes:', registros);
             const container = document.getElementById('registrosRecientes');
             
             if (registros.length === 0) {
@@ -257,7 +292,7 @@ function cargarRegistrosRecientes() {
             container.innerHTML = html;
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error cargando registros:', error);
             document.getElementById('registrosRecientes').innerHTML = 
                 '<div class="text-center text-red-500 py-8">Error cargando registros</div>';
         });
@@ -266,6 +301,13 @@ function cargarRegistrosRecientes() {
 // Cargar registros al iniciar
 document.addEventListener('DOMContentLoaded', function() {
     cargarRegistrosRecientes();
+    
+    // Establecer fecha actual si no está definida
+    const fechaInput = document.getElementById('fecha');
+    if (fechaInput && !fechaInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.value = today;
+    }
 });
 </script>
 {% endblock %}
