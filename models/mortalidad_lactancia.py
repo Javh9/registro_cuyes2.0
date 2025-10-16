@@ -66,24 +66,3 @@ class MortalidadLactancia:
         except Exception as e:
             print(f"Error obteniendo mortalidad reciente: {e}")
             return []
-    
-    def obtener_por_rango_fechas(self, fecha_inicio, fecha_fin):
-        """Obtiene mortalidad por rango de fechas para estadísticas"""
-        if not self.db:
-            return []
-        
-        try:
-            cur = self.db.cursor()
-            cur.execute("""
-                SELECT fecha, SUM(cantidad) as total_muertes
-                FROM mortalidad_lactancia
-                WHERE fecha BETWEEN %s AND %s
-                GROUP BY fecha
-                ORDER BY fecha
-            """, (fecha_inicio, fecha_fin))
-            datos = cur.fetchall()
-            cur.close()
-            return datos
-        except Exception as e:
-            print(f"Error obteniendo mortalidad por rango: {e}")
-            return []

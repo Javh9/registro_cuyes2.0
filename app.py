@@ -52,7 +52,8 @@ def mortalidad_lactancia():
     
     return render_template('mortalidad_lactancia.html', 
                          galpones=galpones, 
-                         causas=causas)
+                         causas=causas,
+                         today=datetime.now().strftime('%Y-%m-%d'))
 
 @app.route('/ventas')
 def ventas():
@@ -374,55 +375,31 @@ def api_pozas_por_galpon(galpon_id):
 
 @app.route('/api/galpones/<int:galpon_id>/pozas_lactancia')
 def api_pozas_lactancia(galpon_id):
+    """API para obtener pozas con lactantes de un galpón"""
     try:
-        print(f"🔍 DEBUG API: Llegó a /api/galpones/{galpon_id}/pozas_lactancia")
+        print(f"🔍 Solicitando pozas lactantes para galpón {galpon_id}")
         
-        # Importar aquí para evitar problemas de importación circular
         from models.poza import Poza
         poza_model = Poza()
         
-        print(f"🔍 DEBUG API: Instancia de Poza creada, buscando pozas...")
-        
-        # PRIMERO intentar con el método específico
+        # Obtener pozas con lactantes
         pozas = poza_model.obtener_pozas_con_lactantes(galpon_id)
+        print(f"✅ Se encontraron {len(pozas)} pozas")
         
-        print(f"🔍 DEBUG API: Resultado de obtener_pozas_con_lactantes: {pozas}")
-        print(f"🔍 DEBUG API: Tipo del resultado: {type(pozas)}")
-        
-        # Si no funciona, usar el método general como fallback
-        if pozas is None or len(pozas) == 0:
-            print(f"🔍 DEBUG API: No se encontraron pozas con método específico, usando método general")
-            pozas = poza_model.obtener_por_galpon(galpon_id)
-            print(f"🔍 DEBUG API: Todas las pozas del galpón: {pozas}")
-        
+        # Formatear respuesta
         pozas_data = []
         for poza in pozas:
-            # Manejar diferentes estructuras de datos
-            if isinstance(poza, (list, tuple)):
-                poza_info = {
-                    'id': poza[0],
-                    'nombre': poza[1],
-                    'tipo': poza[2] if len(poza) > 2 else 'desconocido'
-                }
-            else:
-                poza_info = {
-                    'id': poza.id if hasattr(poza, 'id') else poza.get('id'),
-                    'nombre': poza.nombre if hasattr(poza, 'nombre') else poza.get('nombre'),
-                    'tipo': poza.tipo if hasattr(poza, 'tipo') else poza.get('tipo', 'desconocido')
-                }
-            
-            print(f"🔍 DEBUG API: Procesando poza: {poza_info}")
-            pozas_data.append(poza_info)
+            pozas_data.append({
+                'id': poza[0],
+                'nombre': poza[1],
+                'tipo': poza[2]
+            })
         
-        print(f"🔍 DEBUG API: Datos finales a enviar: {pozas_data}")
         return jsonify(pozas_data)
         
     except Exception as e:
-        print(f"❌ ERROR CRÍTICO en api_pozas_lactancia: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify([])
-
+        print(f"❌ Error en api_pozas_lactancia: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/pozas/<int:poza_id>/sugerir_parto')
 def api_sugerir_parto(poza_id):
@@ -458,6 +435,77 @@ def api_obtener_galpon(galpon_id):
     except Exception as e:
         print(f"Error API obtener galpón: {e}")
         return jsonify({'error': 'Error del servidor'}), 500
+
+# =============================================================================
+# APIs PARA MORTALIDAD LACTANCIA (SOLO UNA VEZ - ELIMINÉ LOS DUPLICADOS)
+# =============================================================================
+
+@app.route('/api/mortalidad_lactancia/registrar', methods=['POST'])
+def api_registrar_mortalidad_lactancia():
+    """API para registrar mortalidad en lactancia"""
+    try:
+        print("🔍 Registrando mortalidad en lactancia...")
+        
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        
+        # Validar datos requeridos
+        required_fields = ['galpon_id', 'poza_id', 'fecha', 'cantidad', 'causa']
+        for field in required_fields:
+            if not request.form.get(field):
+                return jsonify({'success': False, 'error': f'Campo {field} es requerido'})
+        
+        datos = {
+            'galpon_id': int(request.form['galpon_id']),
+            'poza_id': int(request.form['poza_id']),
+            'fecha': request.form['fecha'],
+            'cantidad': int(request.form['cantidad']),
+            'causa': request.form['causa'],
+            'observaciones': request.form.get('observaciones', '')
+        }
+        
+        print(f"📝 Datos a registrar: {datos}")
+        
+        mortalidad_id = mortalidad_model.registrar(datos)
+        if mortalidad_id:
+            print(f"✅ Mortalidad registrada con ID: {mortalidad_id}")
+            return jsonify({
+                'success': True, 
+                'message': 'Mortalidad registrada exitosamente',
+                'id': mortalidad_id
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Error al guardar en base de datos'})
+        
+    except Exception as e:
+        print(f"❌ Error registrando mortalidad: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/mortalidad_lactancia/recientes')
+def api_mortalidad_recientes():
+    """API para obtener registros recientes de mortalidad"""
+    try:
+        from models.mortalidad_lactancia import MortalidadLactancia
+        mortalidad_model = MortalidadLactancia()
+        registros = mortalidad_model.obtener_recientes(10)
+        
+        registros_formateados = []
+        for registro in registros:
+            registros_formateados.append({
+                'id': registro[0],
+                'fecha': registro[1].strftime('%d/%m/%Y'),
+                'cantidad': registro[2],
+                'causa': registro[3],
+                'observaciones': registro[4] or '-',
+                'galpon_nombre': registro[5] or 'Sin nombre',
+                'poza_nombre': registro[6] or 'Sin nombre'
+            })
+        
+        return jsonify(registros_formateados)
+        
+    except Exception as e:
+        print(f"Error API mortalidad recientes: {e}")
+        return jsonify([])
 
 # =============================================================================
 # APIs PARA DASHBOARD
@@ -507,78 +555,6 @@ def api_metricas():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-# =============================================================================
-# APIs PARA MORTALIDAD LACTANCIA
-# =============================================================================
-
-@app.route('/api/mortalidad_lactancia/registrar', methods=['POST'])
-def api_registrar_mortalidad_lactancia():
-    try:
-        print("🔍 DEBUG: Llegó a /api/mortalidad_lactancia/registrar")
-        print("🔍 DEBUG: Datos del formulario:", dict(request.form))
-        
-        from models.mortalidad_lactancia import MortalidadLactancia
-        mortalidad_model = MortalidadLactancia()
-        
-        # Validar datos requeridos
-        required_fields = ['galpon_id', 'poza_id', 'fecha', 'cantidad', 'causa']
-        for field in required_fields:
-            if not request.form.get(field):
-                print(f"❌ DEBUG: Falta campo {field}")
-                return jsonify({'success': False, 'error': f'Campo {field} es requerido'})
-        
-        datos = {
-            'galpon_id': int(request.form['galpon_id']),
-            'poza_id': int(request.form['poza_id']),
-            'fecha': request.form['fecha'],
-            'cantidad': int(request.form['cantidad']),
-            'causa': request.form['causa'],
-            'observaciones': request.form.get('observaciones', '')
-        }
-        
-        print("🔍 DEBUG: Datos procesados:", datos)
-        
-        mortalidad_id = mortalidad_model.registrar(datos)
-        if mortalidad_id:
-            print("✅ DEBUG: Mortalidad registrada con ID:", mortalidad_id)
-            return jsonify({
-                'success': True, 
-                'message': 'Mortalidad registrada exitosamente',
-                'id': mortalidad_id
-            })
-        else:
-            print("❌ DEBUG: Error al guardar en base de datos")
-            return jsonify({'success': False, 'error': 'Error al guardar en base de datos'})
-        
-    except Exception as e:
-        print("❌ DEBUG: Excepción en api_registrar_mortalidad_lactancia:", str(e))
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/mortalidad_lactancia/recientes')
-def api_mortalidad_recientes():
-    try:
-        from models.mortalidad_lactancia import MortalidadLactancia
-        mortalidad_model = MortalidadLactancia()
-        registros = mortalidad_model.obtener_recientes(10)
-        
-        registros_formateados = []
-        for registro in registros:
-            registros_formateados.append({
-                'id': registro[0],
-                'fecha': registro[1].strftime('%d/%m/%Y'),
-                'cantidad': registro[2],
-                'causa': registro[3],
-                'observaciones': registro[4] or '-',
-                'galpon_nombre': registro[5] or f'Galpón {registro[0]}',
-                'poza_nombre': registro[6] or f'Poza {registro[0]}'
-            })
-        
-        return jsonify(registros_formateados)
-        
-    except Exception as e:
-        print(f"Error API mortalidad recientes: {e}")
-        return jsonify([])
 
 # =============================================================================
 # APIs PARA DESTETES

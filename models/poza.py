@@ -1,4 +1,3 @@
-# models/poza.py
 from db.connection import get_db_connection
 
 class Poza:
@@ -26,27 +25,31 @@ class Poza:
             return []
     
     def obtener_pozas_con_lactantes(self, galpon_id):
-        """Obtiene pozas que tienen lactantes (pozAs reproductoras con crías)"""
+        """Obtiene pozas que pueden tener lactantes"""
         if not self.db:
             return []
         
         try:
             cur = self.db.cursor()
-            # Buscar pozas reproductoras que tengan partos recientes
+            # Buscar pozas de tipo lactancia y reproductoras
             cur.execute("""
-                SELECT DISTINCT p.id, p.nombre, p.tipo
-                FROM pozas p
-                LEFT JOIN partos pt ON p.id = pt.poza_id
-                WHERE p.galpon_id = %s 
-                AND p.estado = 'activo'
-                AND p.tipo IN ('reproductora', 'lactantes')
-                AND (pt.fecha_parto >= DATE('now', '-30 days') OR pt.id IS NOT NULL)
-                ORDER BY p.nombre
+                SELECT id, nombre, tipo 
+                FROM pozas 
+                WHERE galpon_id = %s 
+                AND estado = 'activo'
+                AND tipo IN ('lactancia', 'reproductora')
+                ORDER BY nombre
             """, (galpon_id,))
             
             pozas = cur.fetchall()
+            
+            # Si no hay resultados, mostrar todas las pozas del galpón
+            if not pozas:
+                pozas = self.obtener_por_galpon(galpon_id)
+            
             cur.close()
             return pozas
         except Exception as e:
             print(f"Error obteniendo pozas con lactantes: {e}")
-            return []
+            # Fallback a método general
+            return self.obtener_por_galpon(galpon_id)

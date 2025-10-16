@@ -1,313 +1,309 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Mortalidad - Lactancia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">🐭 Registro de Mortalidad - Lactancia</h1>
+            <p class="text-gray-600 mt-2">Registra las pérdidas durante el período de lactancia</p>
+        </div>
 
-{% block title %}Registro de Mortalidad - Lactancia{% endblock %}
+        <!-- Alertas -->
+        <div id="alertContainer"></div>
 
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">🐭 Registro de Mortalidad - Lactancia</h1>
-        <p class="text-gray-600 mt-2">Registra las pérdidas durante el período de lactancia</p>
-    </div>
-
-    <!-- Alertas -->
-    <div id="alertContainer"></div>
-
-    <!-- Formulario -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <form id="mortalidadForm" class="space-y-6">
-            <!-- Fecha -->
-            <div>
-                <label for="fecha" class="block text-sm font-medium text-gray-700 mb-2">
-                    📅 Fecha de Registro
-                </label>
-                <input type="date" id="fecha" name="fecha" 
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       value="{{ today }}">
-            </div>
-
-            <!-- Galpón -->
-            <div>
-                <label for="galpon_id" class="block text-sm font-medium text-gray-700 mb-2">
-                    🏠 Galpón
-                </label>
-                <select id="galpon_id" name="galpon_id" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Selecciona un galpón</option>
-                    {% for galpon in galpones %}
-                    <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Poza (se carga dinámicamente) -->
-            <div>
-                <label for="poza_id" class="block text-sm font-medium text-gray-700 mb-2">
-                    📍 Poza con Lactantes
-                </label>
-                <select id="poza_id" name="poza_id" required disabled
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Primero selecciona un galpón</option>
-                </select>
-                <div id="pozaLoading" class="hidden mt-2 text-sm text-blue-600">
-                    🔄 Cargando pozas disponibles...
-                </div>
-            </div>
-
-            <!-- Cantidad y Causa -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Cantidad -->
+        <!-- Formulario -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <form id="mortalidadForm" class="space-y-6">
+                <!-- Fecha -->
                 <div>
-                    <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-2">
-                        🔢 Cantidad de Muertos
+                    <label for="fecha" class="block text-sm font-medium text-gray-700 mb-2">
+                        📅 Fecha de Registro
                     </label>
-                    <input type="number" id="cantidad" name="cantidad" min="1" required
+                    <input type="date" id="fecha" name="fecha" 
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Ej: 2">
+                           value="{{ today }}">
                 </div>
 
-                <!-- Causa -->
+                <!-- Galpón -->
                 <div>
-                    <label for="causa" class="block text-sm font-medium text-gray-700 mb-2">
-                        🩺 Causa de Muerte
+                    <label for="galpon_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        🏠 Galpón
                     </label>
-                    <select id="causa" name="causa" required
+                    <select id="galpon_id" name="galpon_id" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Selecciona la causa</option>
-                        {% for causa in causas %}
-                        <option value="{{ causa.value }}">{{ causa.label }}</option>
+                        <option value="">Selecciona un galpón</option>
+                        {% for galpon in galpones %}
+                        <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
                         {% endfor %}
                     </select>
                 </div>
-            </div>
 
-            <!-- Observaciones -->
-            <div>
-                <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-2">
-                    📝 Observaciones
-                </label>
-                <textarea id="observaciones" name="observaciones" rows="3"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Detalles adicionales sobre la mortalidad..."></textarea>
-            </div>
+                <!-- Poza (se carga dinámicamente) -->
+                <div>
+                    <label for="poza_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        📍 Poza con Lactantes
+                    </label>
+                    <select id="poza_id" name="poza_id" required disabled
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Primero selecciona un galpón</option>
+                    </select>
+                    <div id="pozaLoading" class="hidden mt-2 text-sm text-blue-600">
+                        🔄 Cargando pozas disponibles...
+                    </div>
+                </div>
 
-            <!-- Botones -->
-            <div class="flex gap-4 pt-4">
-                <button type="submit"
-                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center">
-                    💔 Registrar Mortalidad
-                </button>
-                <a href="{{ url_for('index') }}"
-                   class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 text-center">
-                    ↩️ Volver al Dashboard
-                </a>
-            </div>
-        </form>
-    </div>
+                <!-- Cantidad y Causa -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Cantidad -->
+                    <div>
+                        <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-2">
+                            🔢 Cantidad de Muertos
+                        </label>
+                        <input type="number" id="cantidad" name="cantidad" min="1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ej: 2">
+                    </div>
 
-    <!-- Registros Recientes -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 Registros Recientes</h2>
-        <div id="registrosRecientes" class="overflow-x-auto">
-            <!-- Se cargará dinámicamente -->
-            <div class="text-center text-gray-500 py-8">
-                🔄 Cargando registros...
-            </div>
+                    <!-- Causa -->
+                    <div>
+                        <label for="causa" class="block text-sm font-medium text-gray-700 mb-2">
+                            🩺 Causa de Muerte
+                        </label>
+                        <select id="causa" name="causa" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona la causa</option>
+                            {% for causa in causas %}
+                            <option value="{{ causa.value }}">{{ causa.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div>
+                    <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-2">
+                        📝 Observaciones
+                    </label>
+                    <textarea id="observaciones" name="observaciones" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Detalles adicionales sobre la mortalidad..."></textarea>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-4 pt-4">
+                    <button type="submit"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center">
+                        💔 Registrar Mortalidad
+                    </button>
+                    <a href="/"
+                       class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 text-center">
+                        ↩️ Volver al Dashboard
+                    </a>
+                </div>
+            </form>
         </div>
-    </div>
-</div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-// Cargar pozas cuando se selecciona un galpón
-document.getElementById('galpon_id').addEventListener('change', function() {
-    const galponId = this.value;
-    const pozaSelect = document.getElementById('poza_id');
-    const loadingDiv = document.getElementById('pozaLoading');
-    
-    if (!galponId) {
-        pozaSelect.innerHTML = '<option value="">Primero selecciona un galpón</option>';
-        pozaSelect.disabled = true;
-        return;
-    }
-    
-    // Mostrar loading
-    loadingDiv.classList.remove('hidden');
-    pozaSelect.disabled = true;
-    
-    // 🔥 URL CORREGIDA - eliminé la "s" extra en "galpones"
-    fetch(`/api/galpones/${galponId}/pozas_lactancia`)
-        .then(response => {
-            console.log('🔍 Response status:', response.status);
-            console.log('🔍 Response ok:', response.ok);
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(pozas => {
-            console.log('🔍 Pozas recibidas:', pozas);
-            
-            pozaSelect.innerHTML = '<option value="">Selecciona una poza</option>';
-            
-            if (pozas.length === 0) {
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No hay pozas con lactantes en este galpón";
-                pozaSelect.appendChild(option);
-            } else {
-                pozas.forEach(poza => {
-                    const option = document.createElement('option');
-                    option.value = poza.id;
-                    option.textContent = `${poza.nombre} - ${poza.tipo}`;
-                    pozaSelect.appendChild(option);
-                });
-            }
-            
-            pozaSelect.disabled = false;
-            loadingDiv.classList.add('hidden');
-        })
-        .catch(error => {
-            console.error('Error cargando pozas:', error);
-            pozaSelect.innerHTML = '<option value="">Error cargando pozas</option>';
-            loadingDiv.classList.add('hidden');
-            
-            // Mostrar alerta de error
-            mostrarAlerta('❌ Error al cargar las pozas. Revisa la consola para más detalles.', 'error');
-        });
-});
-
-// Enviar formulario
-document.getElementById('mortalidadForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    
-    // Validar campos requeridos
-    const galponId = document.getElementById('galpon_id').value;
-    const pozaId = document.getElementById('poza_id').value;
-    const cantidad = document.getElementById('cantidad').value;
-    const causa = document.getElementById('causa').value;
-    
-    if (!galponId || !pozaId || !cantidad || !causa) {
-        mostrarAlerta('❌ Por favor completa todos los campos requeridos', 'error');
-        return;
-    }
-    
-    // Mostrar loading
-    submitBtn.innerHTML = '🔄 Registrando...';
-    submitBtn.disabled = true;
-    
-    fetch('/api/mortalidad_lactancia/registrar', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('🔍 Respuesta del servidor:', data);
-        if (data.success) {
-            mostrarAlerta('✅ ' + data.message, 'success');
-            this.reset();
-            cargarRegistrosRecientes();
-        } else {
-            mostrarAlerta('❌ Error: ' + (data.error || 'Error desconocido'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        mostrarAlerta('❌ Error de conexión con el servidor', 'error');
-    })
-    .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-});
-
-// Funciones auxiliares
-function mostrarAlerta(mensaje, tipo) {
-    const alertContainer = document.getElementById('alertContainer');
-    const alertClass = tipo === 'success' 
-        ? 'bg-green-100 border-green-400 text-green-700'
-        : 'bg-red-100 border-red-400 text-red-700';
-    
-    alertContainer.innerHTML = `
-        <div class="border-l-4 p-4 mb-4 ${alertClass} rounded">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">${tipo === 'success' ? '✅' : '❌'}</div>
-                <div class="ml-3">
-                    <p class="text-sm">${mensaje}</p>
+        <!-- Registros Recientes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 Registros Recientes</h2>
+            <div id="registrosRecientes" class="overflow-x-auto">
+                <div class="text-center text-gray-500 py-8">
+                    🔄 Cargando registros...
                 </div>
             </div>
         </div>
-    `;
-    
-    // Auto-remover después de 5 segundos
-    setTimeout(() => {
-        alertContainer.innerHTML = '';
-    }, 5000);
-}
+    </div>
 
-function cargarRegistrosRecientes() {
-    fetch('/api/mortalidad_lactancia/recientes')
-        .then(response => response.json())
-        .then(registros => {
-            console.log('🔍 Registros recientes:', registros);
-            const container = document.getElementById('registrosRecientes');
+    <script>
+        // Cargar pozas cuando se selecciona un galpón
+        document.getElementById('galpon_id').addEventListener('change', function() {
+            const galponId = this.value;
+            const pozaSelect = document.getElementById('poza_id');
+            const loadingDiv = document.getElementById('pozaLoading');
             
-            if (registros.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay registros recientes</div>';
+            if (!galponId) {
+                pozaSelect.innerHTML = '<option value="">Primero selecciona un galpón</option>';
+                pozaSelect.disabled = true;
                 return;
             }
             
-            let html = `
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Galpón/Poza</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Causa</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+            // Mostrar loading
+            loadingDiv.classList.remove('hidden');
+            pozaSelect.disabled = true;
+            pozaSelect.innerHTML = '<option value="">Cargando pozas...</option>';
+            
+            console.log(`🔍 Solicitando pozas para galpón: ${galponId}`);
+            
+            fetch(`/api/galpones/${galponId}/pozas_lactancia`)
+                .then(response => {
+                    console.log('🔍 Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`Error del servidor: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(pozas => {
+                    console.log('🔍 Pozas recibidas:', pozas);
+                    
+                    pozaSelect.innerHTML = '<option value="">Selecciona una poza</option>';
+                    
+                    if (pozas.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No hay pozas disponibles en este galpón";
+                        pozaSelect.appendChild(option);
+                        console.warn('⚠️ No se encontraron pozas para el galpón:', galponId);
+                    } else {
+                        pozas.forEach(poza => {
+                            const option = document.createElement('option');
+                            option.value = poza.id;
+                            option.textContent = `${poza.nombre} (${poza.tipo})`;
+                            pozaSelect.appendChild(option);
+                        });
+                        console.log(`✅ Se cargaron ${pozas.length} pozas`);
+                    }
+                    
+                    pozaSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('❌ Error cargando pozas:', error);
+                    pozaSelect.innerHTML = '<option value="">Error cargando pozas</option>';
+                    mostrarAlerta('❌ Error al cargar las pozas', 'error');
+                })
+                .finally(() => {
+                    loadingDiv.classList.add('hidden');
+                });
+        });
+
+        // Enviar formulario
+        document.getElementById('mortalidadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Validar campos requeridos
+            const camposRequeridos = ['galpon_id', 'poza_id', 'cantidad', 'causa'];
+            const camposFaltantes = camposRequeridos.filter(campo => !formData.get(campo));
+            
+            if (camposFaltantes.length > 0) {
+                mostrarAlerta('❌ Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+            
+            // Mostrar loading
+            submitBtn.innerHTML = '🔄 Registrando...';
+            submitBtn.disabled = true;
+            
+            fetch('/api/mortalidad_lactancia/registrar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('🔍 Respuesta del servidor:', data);
+                if (data.success) {
+                    mostrarAlerta('✅ ' + data.message, 'success');
+                    this.reset();
+                    // Restablecer fecha actual
+                    document.getElementById('fecha').value = '{{ today }}';
+                    cargarRegistrosRecientes();
+                } else {
+                    mostrarAlerta('❌ Error: ' + (data.error || 'Error desconocido'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error:', error);
+                mostrarAlerta('❌ Error de conexión con el servidor', 'error');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        // Funciones auxiliares
+        function mostrarAlerta(mensaje, tipo) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = tipo === 'success' 
+                ? 'bg-green-100 border-green-400 text-green-700'
+                : 'bg-red-100 border-red-400 text-red-700';
+            
+            alertContainer.innerHTML = `
+                <div class="border-l-4 p-4 mb-4 ${alertClass} rounded">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">${tipo === 'success' ? '✅' : '❌'}</div>
+                        <div class="ml-3">
+                            <p class="text-sm">${mensaje}</p>
+                        </div>
+                    </div>
+                </div>
             `;
             
-            registros.forEach(registro => {
-                html += `
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.fecha}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.galpon_nombre} - ${registro.poza_nombre}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.cantidad}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.causa}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">${registro.observaciones}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error cargando registros:', error);
-            document.getElementById('registrosRecientes').innerHTML = 
-                '<div class="text-center text-red-500 py-8">Error cargando registros</div>';
-        });
-}
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
 
-// Cargar registros al iniciar
-document.addEventListener('DOMContentLoaded', function() {
-    cargarRegistrosRecientes();
-    
-    // Establecer fecha actual si no está definida
-    const fechaInput = document.getElementById('fecha');
-    if (fechaInput && !fechaInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        fechaInput.value = today;
-    }
-});
-</script>
-{% endblock %}
+        function cargarRegistrosRecientes() {
+            fetch('/api/mortalidad_lactancia/recientes')
+                .then(response => response.json())
+                .then(registros => {
+                    console.log('🔍 Registros recientes:', registros);
+                    const container = document.getElementById('registrosRecientes');
+                    
+                    if (registros.length === 0) {
+                        container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay registros recientes</div>';
+                        return;
+                    }
+                    
+                    let html = `
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Galpón/Poza</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Causa</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                    `;
+                    
+                    registros.forEach(registro => {
+                        html += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.fecha}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.galpon_nombre} - ${registro.poza_nombre}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.cantidad}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.causa}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">${registro.observaciones}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error cargando registros:', error);
+                    document.getElementById('registrosRecientes').innerHTML = 
+                        '<div class="text-center text-red-500 py-8">Error cargando registros</div>';
+                });
+        }
+
+        // Cargar registros al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarRegistrosRecientes();
+        });
+    </script>
+</body>
+</html>
