@@ -7,28 +7,24 @@ bp = Blueprint('mortalidad_general', __name__)
 
 @bp.route('/')
 def mortalidad_form():
-    """Mostrar formulario de mortalidad general"""
     galpon_model = Galpon()
     galpones = galpon_model.obtener_todos()
     return render_template('mortalidad_general.html', galpones=galpones)
 
 @bp.route('/api/tipos-cuy')
 def get_tipos_cuy():
-    """API para obtener los tipos de cuy disponibles"""
     return jsonify({
         'tipos_cuy': ['reproductor', 'lactante', 'destete', 'reemplazo', 'engorde_destete', 'engorde_descarte']
     })
 
 @bp.route('/api/pozas-por-tipo')
 def get_pozas_por_tipo():
-    """API para obtener pozas filtradas por tipo de cuy"""
     tipo_cuy = request.args.get('tipo_cuy')
     galpon_id = request.args.get('galpon_id')
     
     if not tipo_cuy:
         return jsonify({'pozas': []})
     
-    # Mapear tipo de cuy a tipo de poza
     tipo_poza_map = {
         'reproductor': 'reproductora',
         'lactante': 'lactancia', 
@@ -46,7 +42,6 @@ def get_pozas_por_tipo():
 
 @bp.route('/api/registrar', methods=['POST'])
 def registrar_mortalidad():
-    """API para registrar nueva mortalidad"""
     try:
         data = request.get_json()
         
@@ -72,7 +67,6 @@ def registrar_mortalidad():
 
 @bp.route('/api/historial')
 def get_historial():
-    """API para obtener historial de mortalidad"""
     try:
         mortalidad_model = MortalidadGeneral()
         registros = mortalidad_model.obtener_todos()

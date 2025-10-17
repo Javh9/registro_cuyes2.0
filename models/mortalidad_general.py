@@ -1,5 +1,5 @@
 from datetime import datetime
-from db.database import get_db_connection
+from db.connection import get_db_connection
 
 class MortalidadGeneral:
     TIPOS_CUY = [
