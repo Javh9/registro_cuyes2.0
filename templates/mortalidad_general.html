@@ -1,300 +1,211 @@
-{% extends "base.html" %}
-
-{% block title %}Registro de Mortalidad General{% endblock %}
-
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Registro de Mortalidad General</h1>
-            <p class="text-gray-600">Registre mortalidad para todos los tipos de cuyes en el sistema</p>
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortalidad General</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card { margin-bottom: 20px; }
+        .required { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Mortalidad General</h1>
+            <a href="/" class="btn btn-outline-secondary">Volver al Dashboard</a>
         </div>
 
-        <!-- Formulario -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <form id="mortalidadForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Fecha -->
-                    <div>
-                        <label for="fecha" class="block text-sm font-medium text-gray-700 mb-2">
-                            Fecha de Mortalidad *
-                        </label>
-                        <input type="date" id="fecha" name="fecha" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               required>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Registrar Mortalidad</h5>
                     </div>
+                    <div class="card-body">
+                        <form id="mortalidadForm">
+                            <div class="mb-3">
+                                <label for="fecha" class="form-label">Fecha <span class="required">*</span></label>
+                                <input type="date" class="form-control" id="fecha" name="fecha" required>
+                            </div>
 
-                    <!-- Tipo de Cuy -->
-                    <div>
-                        <label for="tipo_cuy" class="block text-sm font-medium text-gray-700 mb-2">
-                            Tipo de Cuy *
-                        </label>
-                        <select id="tipo_cuy" name="tipo_cuy" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Seleccionar tipo...</option>
-                            <option value="reproductor">Reproductores</option>
-                            <option value="lactante">Lactantes</option>
-                            <option value="destete">Destete</option>
-                            <option value="reemplazo">Reemplazo</option>
-                            <option value="engorde_destete">Engorde Destete</option>
-                            <option value="engorde_descarte">Engorde Descarte</option>
-                        </select>
-                    </div>
+                            <div class="mb-3">
+                                <label for="galpon_id" class="form-label">Galpón <span class="required">*</span></label>
+                                <select class="form-select" id="galpon_id" name="galpon_id" required>
+                                    <option value="">Seleccionar galpón</option>
+                                    {% for galpon in galpones %}
+                                    <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                    <!-- Galpón -->
-                    <div>
-                        <label for="galpon_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Galpón *
-                        </label>
-                        <select id="galpon_id" name="galpon_id" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Seleccionar galpón...</option>
-                            {% for galpon in galpones %}
-                            <option value="{{ galpon[0] }}">{{ galpon[1] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                            <div class="mb-3">
+                                <label for="poza_id" class="form-label">Poza <span class="required">*</span></label>
+                                <select class="form-select" id="poza_id" name="poza_id" required disabled>
+                                    <option value="">Primero seleccione un galpón</option>
+                                </select>
+                            </div>
 
-                    <!-- Poza -->
-                    <div>
-                        <label for="poza_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Poza *
-                        </label>
-                        <select id="poza_id" name="poza_id" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required
-                                disabled>
-                            <option value="">Primero seleccione tipo y galpón</option>
-                        </select>
-                    </div>
+                            <div class="mb-3">
+                                <label for="cantidad" class="form-label">Cantidad de Cuyes Muertos <span class="required">*</span></label>
+                                <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" required>
+                            </div>
 
-                    <!-- Cantidad -->
-                    <div>
-                        <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-2">
-                            Cantidad de Animales *
-                        </label>
-                        <input type="number" id="cantidad" name="cantidad" min="1" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Ej: 2" required>
-                    </div>
+                            <div class="mb-3">
+                                <label for="tipo_cuy" class="form-label">Tipo de Cuy <span class="required">*</span></label>
+                                <select class="form-select" id="tipo_cuy" name="tipo_cuy" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    <option value="reproductor">Reproductor</option>
+                                    <option value="lactante">Lactante</option>
+                                    <option value="destete">Destete</option>
+                                    <option value="reemplazo">Reemplazo</option>
+                                    <option value="engorde_destete">Engorde (Destete)</option>
+                                    <option value="engorde_descarte">Engorde (Descarte)</option>
+                                </select>
+                            </div>
 
-                    <!-- Causa -->
-                    <div>
-                        <label for="causa" class="block text-sm font-medium text-gray-700 mb-2">
-                            Causa de Mortalidad *
-                        </label>
-                        <select id="causa" name="causa" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Seleccionar causa...</option>
-                            <option value="enfermedad">Enfermedad</option>
-                            <option value="accidente">Accidente</option>
-                            <option value="desconocida">Desconocida</option>
-                            <option value="temperatura">Temperatura</option>
-                            <option value="ataque">Ataque de depredador</option>
-                            <option value="otra">Otra</option>
-                        </select>
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Registrar Mortalidad</button>
+                        </form>
                     </div>
                 </div>
+            </div>
 
-                <!-- Observaciones -->
-                <div class="mt-6">
-                    <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-2">
-                        Observaciones
-                    </label>
-                    <textarea id="observaciones" name="observaciones" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Detalles adicionales..."></textarea>
-                </div>
-
-                <!-- Botones -->
-                <div class="mt-8 flex gap-4">
-                    <button type="submit" 
-                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md font-medium transition duration-200">
-                        🐭 Registrar Mortalidad
-                    </button>
-                    <button type="button" onclick="history.back()"
-                            class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition duration-200">
-                        ↩️ Cancelar
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Historial Reciente -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Historial Reciente de Mortalidad</h2>
-            <div id="historialContainer">
-                <div class="text-center py-8 text-gray-500">
-                    Cargando historial...
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Historial Reciente</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="historialContainer">
+                            <p class="text-muted">Cargando historial...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-// Cargar pozas cuando cambie el tipo o galpón
-document.getElementById('tipo_cuy').addEventListener('change', cargarPozas);
-document.getElementById('galpon_id').addEventListener('change', cargarPozas);
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('fecha').valueAsDate = new Date();
 
-function cargarPozas() {
-    const tipoCuy = document.getElementById('tipo_cuy').value;
-    const galponId = document.getElementById('galpon_id').value;
-    const pozaSelect = document.getElementById('poza_id');
-    
-    if (!tipoCuy || !galponId) {
-        pozaSelect.innerHTML = '<option value="">Primero seleccione tipo y galpón</option>';
-        pozaSelect.disabled = true;
-        return;
-    }
-    
-    // Mostrar loading
-    pozaSelect.innerHTML = '<option value="">Cargando pozas...</option>';
-    pozaSelect.disabled = true;
-    
-    fetch(`/api/mortalidad/pozas-por-tipo?tipo_cuy=${tipoCuy}&galpon_id=${galponId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.pozas && data.pozas.length > 0) {
-                pozaSelect.innerHTML = '<option value="">Seleccionar poza...</option>';
-                data.pozas.forEach(poza => {
-                    pozaSelect.innerHTML += `<option value="${poza[0]}">${poza[1]} (Cap: ${poza[3]})</option>`;
-                });
-                pozaSelect.disabled = false;
-            } else {
-                pozaSelect.innerHTML = '<option value="">No hay pozas disponibles</option>';
+        document.getElementById('galpon_id').addEventListener('change', cargarPozas);
+        
+        document.getElementById('mortalidadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            registrarMortalidad();
+        });
+
+        cargarHistorial();
+
+        function cargarPozas() {
+            const galponId = document.getElementById('galpon_id').value;
+            const pozaSelect = document.getElementById('poza_id');
+
+            if (!galponId) {
+                pozaSelect.innerHTML = '<option value="">Primero seleccione un galpón</option>';
                 pozaSelect.disabled = true;
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error cargando pozas:', error);
-            pozaSelect.innerHTML = '<option value="">Error cargando pozas</option>';
+
             pozaSelect.disabled = true;
-        });
-}
+            pozaSelect.innerHTML = '<option value="">Cargando pozas...</option>';
 
-// Enviar formulario
-document.getElementById('mortalidadForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
-    
-    // Validar
-    if (!data.fecha || !data.tipo_cuy || !data.galpon_id || !data.poza_id || !data.cantidad || !data.causa) {
-        alert('❌ Por favor complete todos los campos requeridos');
-        return;
-    }
-    
-    fetch('/api/mortalidad/registrar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            alert('✅ ' + result.message);
-            this.reset();
-            // Establecer fecha actual
-            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-            cargarHistorial();
-        } else {
-            alert('❌ ' + result.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('❌ Error al registrar mortalidad');
-    });
-});
-
-// Cargar historial
-function cargarHistorial() {
-    fetch('/api/mortalidad/historial')
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById('historialContainer');
-            
-            if (data.success && data.data.length > 0) {
-                let html = `
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full table-auto">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">Fecha</th>
-                                    <th class="px-4 py-2 text-left">Tipo</th>
-                                    <th class="px-4 py-2 text-left">Ubicación</th>
-                                    <th class="px-4 py-2 text-left">Cantidad</th>
-                                    <th class="px-4 py-2 text-left">Causa</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                
-                data.data.slice(0, 10).forEach(reg => {
-                    html += `
-                        <tr class="border-t hover:bg-gray-50">
-                            <td class="px-4 py-2">${reg.fecha}</td>
-                            <td class="px-4 py-2">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTipoCuyColor(reg.tipo_cuy)}">
-                                    ${getTipoCuyText(reg.tipo_cuy)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">${reg.galpon_nombre} - ${reg.poza_nombre}</td>
-                            <td class="px-4 py-2 font-semibold text-red-600">${reg.cantidad}</td>
-                            <td class="px-4 py-2">${reg.causa}</td>
-                        </tr>
-                    `;
+            fetch('/api/galpones/' + galponId + '/pozas')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Pozas:', data);
+                    pozaSelect.innerHTML = '<option value="">Seleccionar poza</option>';
+                    
+                    if (data.length > 0) {
+                        data.forEach(poza => {
+                            const option = document.createElement('option');
+                            option.value = poza.id;
+                            option.textContent = poza.nombre + ' (' + poza.tipo + ')';
+                            pozaSelect.appendChild(option);
+                        });
+                        pozaSelect.disabled = false;
+                    } else {
+                        pozaSelect.innerHTML = '<option value="">No hay pozas disponibles</option>';
+                        pozaSelect.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    pozaSelect.innerHTML = '<option value="">Error al cargar pozas</option>';
+                    pozaSelect.disabled = true;
                 });
-                
-                html += `</tbody></table></div>`;
-                container.innerHTML = html;
-            } else {
-                container.innerHTML = '<div class="text-center py-8 text-gray-500">No hay registros de mortalidad</div>';
+        }
+
+        function registrarMortalidad() {
+            const formData = {
+                fecha: document.getElementById('fecha').value,
+                galpon_id: document.getElementById('galpon_id').value,
+                poza_id: document.getElementById('poza_id').value,
+                cantidad: document.getElementById('cantidad').value,
+                tipo_cuy: document.getElementById('tipo_cuy').value,
+                observaciones: document.getElementById('observaciones').value
+            };
+
+            if (!formData.fecha || !formData.galpon_id || !formData.poza_id || !formData.cantidad || !formData.tipo_cuy) {
+                alert('Complete todos los campos requeridos');
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error cargando historial:', error);
-            container.innerHTML = '<div class="text-center py-8 text-red-500">Error cargando historial</div>';
-        });
-}
 
-// Helper functions
-function getTipoCuyColor(tipo) {
-    const colors = {
-        'reproductor': 'bg-purple-100 text-purple-800',
-        'lactante': 'bg-blue-100 text-blue-800',
-        'destete': 'bg-green-100 text-green-800',
-        'reemplazo': 'bg-yellow-100 text-yellow-800',
-        'engorde_destete': 'bg-orange-100 text-orange-800',
-        'engorde_descarte': 'bg-red-100 text-red-800'
-    };
-    return colors[tipo] || 'bg-gray-100 text-gray-800';
-}
+            fetch('/mortalidad/api/registrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Mortalidad registrada correctamente');
+                    document.getElementById('mortalidadForm').reset();
+                    document.getElementById('fecha').valueAsDate = new Date();
+                    cargarHistorial();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al registrar mortalidad');
+            });
+        }
 
-function getTipoCuyText(tipo) {
-    const texts = {
-        'reproductor': 'Reproductores',
-        'lactante': 'Lactantes',
-        'destete': 'Destete',
-        'reemplazo': 'Reemplazo',
-        'engorde_destete': 'Engorde Destete',
-        'engorde_descarte': 'Engorde Descarte'
-    };
-    return texts[tipo] || tipo;
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', function() {
-    // Establecer fecha actual por defecto
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('fecha').value = today;
-    
-    // Cargar historial
-    cargarHistorial();
-});
-</script>
-{% endblock %}
+        function cargarHistorial() {
+            fetch('/mortalidad/api/historial')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('historialContainer');
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        let html = '<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Galpón</th></tr></thead><tbody>';
+                        
+                        data.data.forEach(registro => {
+                            html += '<tr><td>' + registro.fecha + '</td><td>' + registro.tipo_cuy + '</td><td>' + registro.cantidad + '</td><td>' + registro.galpon_nombre + '</td></tr>';
+                        });
+                        
+                        html += '</tbody></table></div>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<p class="text-muted">No hay registros de mortalidad</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('historialContainer').innerHTML = '<p class="text-danger">Error al cargar historial</p>';
+                });
+        }
+    </script>
+</body>
+</html>
