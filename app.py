@@ -90,6 +90,11 @@ def mortalidad_lactancia():
 def ventas():
     return render_template('ventas.html')
 
+@app.route('/gastos')
+def gastos():
+    return render_template('gastos.html')
+
+
 @app.route('/galpones')
 def galpones():
     from models.galpon import Galpon
