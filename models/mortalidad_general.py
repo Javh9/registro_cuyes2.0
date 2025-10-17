@@ -77,7 +77,26 @@ class MortalidadGeneral:
                 ORDER BY mg.fecha DESC
             """
             cursor.execute(query)
-            return cursor.fetchall()
+            
+            # Convertir a lista de diccionarios para el frontend
+            registros = cursor.fetchall()
+            registros_list = []
+            for registro in registros:
+                registros_list.append({
+                    'id': registro[0],
+                    'fecha': registro[1].strftime('%d/%m/%Y') if registro[1] else '',
+                    'tipo_cuy': registro[2],
+                    'galpon_id': registro[3],
+                    'poza_id': registro[4],
+                    'cantidad': registro[5],
+                    'causa': registro[6],
+                    'observaciones': registro[7],
+                    'galpon_nombre': registro[8],
+                    'poza_nombre': registro[9]
+                })
+            
+            return registros_list
+            
         except Exception as e:
             print(f"Error obteniendo mortalidad general: {e}")
             return []
@@ -136,6 +155,76 @@ class MortalidadGeneral:
             conn.rollback()
             print(f"Error eliminando mortalidad: {e}")
             return False
+        finally:
+            cursor.close()
+            conn.close()
+
+    # MÉTODOS NUEVOS PARA COMPATIBILIDAD CON EL CONTROLADOR
+    def obtener_todos(self):
+        """Método de instancia para obtener todos los registros"""
+        return self.get_all()
+
+    def registrar(self, datos):
+        """Método de instancia para registrar mortalidad"""
+        try:
+            # Crear una nueva instancia con los datos
+            nueva_mortalidad = MortalidadGeneral(
+                fecha=datos['fecha'],
+                tipo_cuy=datos['tipo_cuy'],
+                galpon_id=datos['galpon_id'],
+                poza_id=datos['poza_id'],
+                cantidad=datos['cantidad'],
+                observaciones=datos.get('observaciones', '')
+            )
+            
+            # Guardar en la base de datos
+            if nueva_mortalidad.save():
+                return nueva_mortalidad.id
+            else:
+                return False
+                
+        except Exception as e:
+            print(f"Error en método registrar: {e}")
+            return False
+
+    @staticmethod
+    def obtener_por_galpon(galpon_id):
+        """Obtiene mortalidad por galpón"""
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            query = """
+                SELECT mg.*, g.nombre as galpon_nombre, p.nombre as poza_nombre
+                FROM mortalidad_general mg
+                JOIN galpones g ON mg.galpon_id = g.id
+                JOIN pozas p ON mg.poza_id = p.id
+                WHERE mg.galpon_id = %s
+                ORDER BY mg.fecha DESC
+            """
+            cursor.execute(query, (galpon_id,))
+            
+            # Convertir a lista de diccionarios
+            registros = cursor.fetchall()
+            registros_list = []
+            for registro in registros:
+                registros_list.append({
+                    'id': registro[0],
+                    'fecha': registro[1].strftime('%d/%m/%Y') if registro[1] else '',
+                    'tipo_cuy': registro[2],
+                    'galpon_id': registro[3],
+                    'poza_id': registro[4],
+                    'cantidad': registro[5],
+                    'causa': registro[6],
+                    'observaciones': registro[7],
+                    'galpon_nombre': registro[8],
+                    'poza_nombre': registro[9]
+                })
+            
+            return registros_list
+            
+        except Exception as e:
+            print(f"Error obteniendo mortalidad por galpón: {e}")
+            return []
         finally:
             cursor.close()
             conn.close()
