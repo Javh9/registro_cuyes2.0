@@ -14,6 +14,37 @@ app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'db', 'cuyes.db
 # =============================================================================
 # RUTAS PRINCIPALES (PÁGINAS)
 # =============================================================================
+# Agregar estas líneas en app.py
+# Importar solo los blueprints que existen
+from routes.parto import bp as partos_bp
+from routes.mortalidad_general import bp as mortalidad_bp
+from routes.dashboard import bp as dashboard_bp
+
+# Comentar temporalmente los que no existen
+# from routes.destetes import bp as destetes_bp
+# from routes.galpones import bp as galpones_bp
+# from routes.gastos import bp as gastos_bp  
+# from routes.ventas import bp as ventas_bp
+# from routes.inventario import bp as inventario_bp
+# from routes.balance import bp as balance_bp
+# from routes.predicciones import bp as predicciones_bp
+
+app = Flask(__name__)
+app.secret_key = 'tu_clave_secreta_aqui'
+
+# Registrar solo los blueprints que existen
+app.register_blueprint(partos_bp, url_prefix='/partos')
+app.register_blueprint(mortalidad_bp, url_prefix='/mortalidad')
+app.register_blueprint(dashboard_bp)
+
+# Comentar temporalmente los que no existen
+# app.register_blueprint(destetes_bp, url_prefix='/destetes')
+# app.register_blueprint(galpones_bp, url_prefix='/galpones')
+# app.register_blueprint(gastos_bp, url_prefix='/gastos')
+# app.register_blueprint(ventas_bp, url_prefix='/ventas') 
+# app.register_blueprint(inventario_bp, url_prefix='/inventario')
+# app.register_blueprint(balance_bp, url_prefix='/balance')
+# app.register_blueprint(predicciones_bp, url_prefix='/predicciones')
 
 @app.route('/')
 def index():

@@ -36,14 +36,15 @@ CREATE TABLE IF NOT EXISTS partos_simplificada (
     fecha_creacion TIMESTAMP DEFAULT NOW()
 );
 
--- Tabla mortalidad_lactancia
-CREATE TABLE IF NOT EXISTS mortalidad_lactancia (
+-- 🆕 TABLA MORTALIDAD GENERAL UNIFICADA (REEMPLAZA mortalidad_lactancia)
+CREATE TABLE IF NOT EXISTS mortalidad_general (
     id SERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    tipo_cuy VARCHAR(20) NOT NULL CHECK (tipo_cuy IN ('reproductor', 'lactante', 'destete', 'reemplazo', 'engorde_destete', 'engorde_descarte')),
     galpon_id INTEGER REFERENCES galpones(id),
     poza_id INTEGER REFERENCES pozas(id),
-    fecha DATE NOT NULL,
-    cantidad INTEGER DEFAULT 0,
-    causa VARCHAR(50) NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    causa VARCHAR(100) NOT NULL,
     observaciones TEXT,
     fecha_creacion TIMESTAMP DEFAULT NOW()
 );
@@ -106,6 +107,26 @@ CREATE TABLE IF NOT EXISTS gastos (
 );
 
 -- =============================================
+-- MIGRACIÓN DE DATOS EXISTENTES
+-- =============================================
+
+-- 🚨 MIGRAR DATOS EXISTENTES de mortalidad_lactancia a mortalidad_general
+INSERT INTO mortalidad_general (fecha, tipo_cuy, galpon_id, poza_id, cantidad, causa, observaciones, fecha_creacion)
+SELECT 
+    fecha, 
+    'lactante' as tipo_cuy, 
+    galpon_id, 
+    poza_id, 
+    cantidad, 
+    causa, 
+    observaciones, 
+    fecha_creacion
+FROM mortalidad_lactancia;
+
+-- 🗑️ ELIMINAR TABLA ANTIGUA (después de migrar)
+DROP TABLE IF EXISTS mortalidad_lactancia;
+
+-- =============================================
 -- INSERTAR DATOS BÁSICOS PARA PRUEBAS
 -- =============================================
 
@@ -131,6 +152,8 @@ ON CONFLICT DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_pozas_galpon_id ON pozas(galpon_id);
 CREATE INDEX IF NOT EXISTS idx_partos_poza ON partos_simplificada(poza_id);
 CREATE INDEX IF NOT EXISTS idx_partos_fecha ON partos_simplificada(fecha_parto);
+CREATE INDEX IF NOT EXISTS idx_mortalidad_tipo ON mortalidad_general(tipo_cuy);
+CREATE INDEX IF NOT EXISTS idx_mortalidad_fecha ON mortalidad_general(fecha);
 
 -- =============================================
 -- MENSAJE FINAL
@@ -139,5 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_partos_fecha ON partos_simplificada(fecha_parto);
 DO $$ 
 BEGIN
     RAISE NOTICE '✅ Base de datos configurada correctamente';
-    RAISE NOTICE '📊 Tablas creadas: galpones, pozas, partos_simplificada, mortalidad_lactancia, destetes_simplificada, control_engorde, ventas, gastos';
+    RAISE NOTICE '🆕 Tabla mortalidad_general creada (unificada)';
+    RAISE NOTICE '📊 Tablas creadas: galpones, pozas, partos_simplificada, mortalidad_general, destetes_simplificada, control_engorde, ventas, gastos';
+    RAISE NOTICE '🔄 Datos de mortalidad_lactancia migrados a mortalidad_general';
 END $$;
