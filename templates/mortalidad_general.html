@@ -66,6 +66,18 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="causa" class="form-label">Causa de Mortalidad <span class="required">*</span></label>
+                                <select class="form-select" id="causa" name="causa" required>
+                                    <option value="">Seleccionar causa</option>
+                                    <option value="natural">Natural</option>
+                                    <option value="enfermedad">Enfermedad</option>
+                                    <option value="accidente">Accidente</option>
+                                    <option value="desconocida">Desconocida</option>
+                                    <option value="otra">Otra</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="observaciones" class="form-label">Observaciones</label>
                                 <textarea class="form-control" id="observaciones" name="observaciones" rows="3"></textarea>
                             </div>
@@ -150,10 +162,11 @@
                 poza_id: document.getElementById('poza_id').value,
                 cantidad: document.getElementById('cantidad').value,
                 tipo_cuy: document.getElementById('tipo_cuy').value,
+                causa: document.getElementById('causa').value,
                 observaciones: document.getElementById('observaciones').value
             };
 
-            if (!formData.fecha || !formData.galpon_id || !formData.poza_id || !formData.cantidad || !formData.tipo_cuy) {
+            if (!formData.fecha || !formData.galpon_id || !formData.poza_id || !formData.cantidad || !formData.tipo_cuy || !formData.causa) {
                 alert('Complete todos los campos requeridos');
                 return;
             }
@@ -189,10 +202,10 @@
                     const container = document.getElementById('historialContainer');
                     
                     if (data.success && data.data && data.data.length > 0) {
-                        let html = '<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Galpón</th></tr></thead><tbody>';
+                        let html = '<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Causa</th><th>Galpón</th></tr></thead><tbody>';
                         
                         data.data.forEach(registro => {
-                            html += '<tr><td>' + registro.fecha + '</td><td>' + registro.tipo_cuy + '</td><td>' + registro.cantidad + '</td><td>' + registro.galpon_nombre + '</td></tr>';
+                            html += '<tr><td>' + registro.fecha + '</td><td>' + registro.tipo_cuy + '</td><td>' + registro.cantidad + '</td><td>' + registro.causa + '</td><td>' + registro.galpon_nombre + '</td></tr>';
                         });
                         
                         html += '</tbody></table></div>';

@@ -174,6 +174,7 @@ class MortalidadGeneral:
                 galpon_id=datos['galpon_id'],
                 poza_id=datos['poza_id'],
                 cantidad=datos['cantidad'],
+                causa=datos['causa'],
                 observaciones=datos.get('observaciones', '')
             )
             
